@@ -8,11 +8,7 @@ export PATH="$HOME/.cargo/bin:$PATH"
 export ZSH=$HOME/.oh-my-zsh
 export RUBYOPT="-W0"
 
-# append completions to fpath
-echo -e "\nfpath=(${ASDF_DIR}/completions $fpath)" >> ~/.zshrc
-# initialise completions with ZSH's compinit
-echo -e "\nautoload -Uz compinit && compinit" >> ~/.zshrc
-echo -e "\n. $HOME/.asdf/asdf.sh" >> ~/.zshrc
+echo -e "\n. $(brew --prefix asdf)/asdf.sh" >> ~/.zshrc
 
 
 # Set name of the theme to load --- if set to "random", it will
@@ -120,100 +116,8 @@ fpath=(/completions /usr/local/share/zsh/site-functions /usr/share/zsh/site-func
 
 autoload -Uz compinit && compinit
 
-. /Users/steventuetpiukwok/.asdf/asdf.sh
+. /usr/local/Cellar/asdf/0.7.8/asdf.sh
 
-fpath=(/Users/steventuetpiukwok/.asdf/completions /usr/local/share/zsh/site-functions /usr/share/zsh/site-functions /usr/share/zsh/5.7.1/functions)
+. /usr/local/opt/asdf/asdf.sh
 
-autoload -Uz compinit && compinit
-
-. /Users/steventuetpiukwok/.asdf/asdf.sh
-
-fpath=(/Users/steventuetpiukwok/.asdf/completions /usr/local/share/zsh/site-functions /usr/share/zsh/site-functions /usr/share/zsh/5.7.1/functions)
-
-autoload -Uz compinit && compinit
-
-. /Users/steventuetpiukwok/.asdf/asdf.sh
-
-fpath=(/Users/steventuetpiukwok/.asdf/completions /usr/local/share/zsh/site-functions /usr/share/zsh/site-functions /usr/share/zsh/5.7.1/functions)
-
-autoload -Uz compinit && compinit
-
-. /Users/steventuetpiukwok/.asdf/asdf.sh
-
-fpath=(/Users/steventuetpiukwok/.asdf/completions /Users/steventuetpiukwok/.asdf/completions /usr/local/share/zsh/site-functions /usr/share/zsh/site-functions /usr/share/zsh/5.7.1/functions)
-
-autoload -Uz compinit && compinit
-
-. /Users/steventuetpiukwok/.asdf/asdf.sh
-
-fpath=(/completions /usr/local/share/zsh/site-functions /usr/share/zsh/site-functions /usr/share/zsh/5.7.1/functions)
-
-autoload -Uz compinit && compinit
-
-. /Users/steventuetpiukwok/.asdf/asdf.sh
-
-fpath=(/Users/steventuetpiukwok/.asdf/completions /completions /usr/local/share/zsh/site-functions /usr/share/zsh/site-functions /usr/share/zsh/5.7.1/functions)
-
-autoload -Uz compinit && compinit
-
-. /Users/steventuetpiukwok/.asdf/asdf.sh
-
-fpath=(/Users/steventuetpiukwok/.asdf/completions /usr/local/share/zsh/site-functions /usr/share/zsh/site-functions /usr/share/zsh/5.7.1/functions)
-
-autoload -Uz compinit && compinit
-
-. /Users/steventuetpiukwok/.asdf/asdf.sh
-
-fpath=(/Users/steventuetpiukwok/.asdf/completions /usr/local/share/zsh/site-functions /usr/share/zsh/site-functions /usr/share/zsh/5.7.1/functions)
-
-autoload -Uz compinit && compinit
-
-. /Users/steventuetpiukwok/.asdf/asdf.sh
-
-fpath=(/Users/steventuetpiukwok/.asdf/completions /usr/local/share/zsh/site-functions /usr/share/zsh/site-functions /usr/share/zsh/5.7.1/functions)
-
-autoload -Uz compinit && compinit
-
-. /Users/steventuetpiukwok/.asdf/asdf.sh
-
-fpath=(/Users/steventuetpiukwok/.asdf/completions /usr/local/share/zsh/site-functions /usr/share/zsh/site-functions /usr/share/zsh/5.7.1/functions)
-
-autoload -Uz compinit && compinit
-
-. /Users/steventuetpiukwok/.asdf/asdf.sh
-
-fpath=(/Users/steventuetpiukwok/.asdf/completions /usr/local/share/zsh/site-functions /usr/share/zsh/site-functions /usr/share/zsh/5.7.1/functions)
-
-autoload -Uz compinit && compinit
-
-. /Users/steventuetpiukwok/.asdf/asdf.sh
-
-fpath=(/Users/steventuetpiukwok/.asdf/completions /usr/local/share/zsh/site-functions /usr/share/zsh/site-functions /usr/share/zsh/5.7.1/functions)
-
-autoload -Uz compinit && compinit
-
-. /Users/steventuetpiukwok/.asdf/asdf.sh
-
-fpath=(/Users/steventuetpiukwok/.asdf/completions /usr/local/share/zsh/site-functions /usr/share/zsh/site-functions /usr/share/zsh/5.7.1/functions)
-
-autoload -Uz compinit && compinit
-
-. /Users/steventuetpiukwok/.asdf/asdf.sh
-
-fpath=(/Users/steventuetpiukwok/.asdf/completions /usr/local/share/zsh/site-functions /usr/share/zsh/site-functions /usr/share/zsh/5.7.1/functions)
-
-autoload -Uz compinit && compinit
-
-. /Users/steventuetpiukwok/.asdf/asdf.sh
-
-fpath=(/Users/steventuetpiukwok/.asdf/completions /usr/local/share/zsh/site-functions /usr/share/zsh/site-functions /usr/share/zsh/5.7.1/functions)
-
-autoload -Uz compinit && compinit
-
-. /Users/steventuetpiukwok/.asdf/asdf.sh
-
-fpath=(/Users/steventuetpiukwok/.asdf/completions /usr/local/share/zsh/site-functions /usr/share/zsh/site-functions /usr/share/zsh/5.7.1/functions)
-
-autoload -Uz compinit && compinit
-
-. /Users/steventuetpiukwok/.asdf/asdf.sh
+. /usr/local/opt/asdf/asdf.sh
