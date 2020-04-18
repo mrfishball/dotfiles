@@ -1,0 +1,17 @@
+# This is Git's per-user configuration file.
+[user]
+# Please adapt and uncomment the following lines:
+name = Steven Tuet Piu Kwok
+email = mrfishball@gmail.com
+
+[alias]
+    lg = log --color --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --branches
+    cleanup = "!git branch --merged | grep  -v '\\*\\|master\\|develop' | xargs -n 1 git branch -d"
+[rerere]
+	enabled = true
+	autoupdate = true
+[branch]
+	autosetuprebase = always
+	autosetupmerge = always
+[core]
+	excludesfile = /Users/steventuetpiukwok/.gitignore_global
