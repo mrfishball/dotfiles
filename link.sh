@@ -112,9 +112,7 @@ print_success() {
 }
 
 # finds all .dotfiles in this folder
-declare -a FILES_TO_SYMLINK=$(find . -name ".*" -not -name .DS_Store -not -name .git -not -name .osx | sed -e 's|//|/|' | sed -e 's|./.|.|')
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+declare -a FILES_TO_SYMLINK=$(find . -maxdepth 1 -name ".*" -not -name .DS_Store -not -name .git -not -name .gitignore)
 
 main() {
 
@@ -122,9 +120,8 @@ main() {
     local sourceFile=""
     local targetFile=""
 
-    for i in ${FILES_TO_SYMLINK[@]}; do
+    for i in ${FILES_TO_SYMLINK[0]:1}; do
 
-        echo i
         sourceFile="$(pwd)/$i"
         targetFile="$HOME/$(printf "%s" "$i" | sed "s/.*\/\(.*\)/\1/g")"
 
@@ -134,7 +131,7 @@ main() {
                 ask_for_confirmation "'$targetFile' already exists, do you want to overwrite it?"
                 if answer_is_yes; then
                     rm -rf "$targetFile"
-                    execute "ln -svf $sourceFile $targetFile" "$targetFile → $sourceFile"
+                    execute "ln -svfn $sourceFile $targetFile" "$targetFile → $sourceFile"
                 else
                     print_error "$targetFile → $sourceFile"
                 fi
@@ -143,11 +140,9 @@ main() {
                 print_success "$targetFile → $sourceFile"
             fi
         else
-            execute "ln -fs $sourceFile $targetFile" "$targetFile → $sourceFile"
+            execute "ln -svfn $sourceFile $targetFile" "$targetFile → $sourceFile"
         fi
-
     done
-
 }
 
 main
