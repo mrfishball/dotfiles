@@ -1,0 +1,10 @@
+.vim/colors/*
+.vim/syntax/*
+.vim/bundle/*
+.vim/spell/*
+.vim/autoload/plug.vim.old
+.vim/plugged/*
+.vim/.netrwhist
+
+*.swp
+*.swo

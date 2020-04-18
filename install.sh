@@ -17,6 +17,8 @@ if [ "$(uname)" == "Darwin" ]; then
         ruby -e "$( curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install )"
     fi
 
+    brew update
+    brew upgrade
     brew tap Homebrew/bundle
 
     # install brew dependencies from Brewfile
