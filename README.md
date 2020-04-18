@@ -13,5 +13,5 @@ Then, clone the dotfiles repository to your home directory as `~/.dotfiles`.
 ```bash
 ➜ git clone https://github.com/mrfishball/dotfiles.git ~/dotfiles
 ➜ cd ~/dotfiles
-➜ ./install.sh
+➜ sh install.sh
 ```

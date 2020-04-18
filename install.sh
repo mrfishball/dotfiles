@@ -9,11 +9,15 @@ echo "Installing dotfiles."
 # only perform macOS-specific install
 if [ "$(uname)" == "Darwin" ]; then
     echo -e "\\n\\nRunning on macOS"
+    sudo xcode-select --install
+    sudo xcodebuild -license
 
     if test ! "$( command -v brew )"; then
         echo "Installing homebrew"
         ruby -e "$( curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install )"
     fi
+
+    brew tap Homebrew/bundle
 
     # install brew dependencies from Brewfile
     brew bundle
