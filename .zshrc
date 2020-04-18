@@ -9,6 +9,7 @@ export ZSH=$HOME/.oh-my-zsh
 export RUBYOPT="-W0"
 
 echo -e "\n. $(brew --prefix asdf)/asdf.sh" >> ~/.zshrc
+echo -e "\n. $(brew --prefix asdf)/etc/bash_completion.d/asdf.bash" >> ~/.zshrc
 
 
 # Set name of the theme to load --- if set to "random", it will
@@ -121,3 +122,11 @@ autoload -Uz compinit && compinit
 . /usr/local/opt/asdf/asdf.sh
 
 . /usr/local/opt/asdf/asdf.sh
+
+. /usr/local/opt/asdf/asdf.sh
+
+. /usr/local/opt/asdf/asdf.sh
+
+. /usr/local/opt/asdf/asdf.sh
+
+. /usr/local/opt/asdf/etc/bash_completion.d/asdf.bash
