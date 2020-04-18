@@ -45,3 +45,5 @@ if [ "$(uname)" == "Darwin" ]; then
 
     echo "Done. Reload your terminal."
 fi
+
+source link.sh
