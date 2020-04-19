@@ -8,9 +8,6 @@ export PATH="$HOME/.cargo/bin:$PATH"
 export ZSH=$HOME/.oh-my-zsh
 export RUBYOPT="-W0"
 
-echo -e "\n. $(brew --prefix asdf)/asdf.sh" >> ~/.zshrc
-echo -e "\n. $(brew --prefix asdf)/etc/bash_completion.d/asdf.bash" >> ~/.zshrc
-
 
 # Set name of the theme to load --- if set to "random", it will
 # load a random theme each time oh-my-zsh is loaded, in which case,
@@ -112,21 +109,3 @@ export PATH="$PATH:$HOME/.rvm/bin"
 
 # added by travis gem
 [ -f /Users/steventuetpiukwok/.travis/travis.sh ] && source /Users/steventuetpiukwok/.travis/travis.sh
-
-fpath=(/completions /usr/local/share/zsh/site-functions /usr/share/zsh/site-functions /usr/share/zsh/5.7.1/functions)
-
-autoload -Uz compinit && compinit
-
-. /usr/local/Cellar/asdf/0.7.8/asdf.sh
-
-. /usr/local/opt/asdf/asdf.sh
-
-. /usr/local/opt/asdf/asdf.sh
-
-. /usr/local/opt/asdf/asdf.sh
-
-. /usr/local/opt/asdf/asdf.sh
-
-. /usr/local/opt/asdf/asdf.sh
-
-. /usr/local/opt/asdf/etc/bash_completion.d/asdf.bash

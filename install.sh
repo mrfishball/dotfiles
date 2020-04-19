@@ -1,55 +1,64 @@
 #!/usr/bin/env bash
 
-command_exists() {
-    type "$1" > /dev/null 2>&1
-}
-
-echo "Installing dotfiles."
-
-# only perform macOS-specific install
 if [ "$(uname)" == "Darwin" ]; then
-    echo -e "\\n\\nRunning on macOS"
+    echo "\\nMacOS detected..."
+    echo "\\nInstalling XCode CLI tools..."
     sudo xcode-select --install
     sudo xcodebuild -license
+    echo "Done"
 
     if test ! "$( command -v brew )"; then
-        echo "Installing homebrew"
-        ruby -e "$( curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install )"
+        echo "\\nInstalling homebrew..."
+        sh -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+        echo "Done"
+    else
+        echo "\\nHomebrew already installed..."
+
+        echo "\\nUpdating Homebrew..."
+        brew update
+        echo "Done"
+
+        echo "\\nUpdating all Homebrew Packages..."
+        brew upgrade
+        echo "Done"
     fi
 
-    brew update
-    brew upgrade
+    echo "\\nTapping Homebrew/bundle..."
     brew tap Homebrew/bundle
+    echo "Done"
 
     # install brew dependencies from Brewfile
+    echo "\\nInstall packages from Brewfile..."
     brew bundle
+    echo "Done"
 
-    # after the install, install neovim python libraries
-    echo -e "\\n\\nRunning Neovim Python install"
-    echo "=============================="
+    echo "\\nInstalling Python for Neovim..."
     pip3 install pynvim
+    echo "Done"
 
-    if ! command_exists zsh; then
-        echo "zsh not found. Please install and then re-run installation scripts"
-        exit 1
-    elif ! [[ $SHELL =~ .*zsh.* ]]; then
-        echo "Configuring zsh as default shell"
-        chsh -s "$(command -v zsh)"
-    fi
+    echo "\\nInstaling Oh My Zsh..."
+    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+    echo "Done"
 
-    # Change the default shell to zsh
     zsh_path="$( command -v zsh )"
-    if ! grep "$zsh_path" /etc/shells; then
-        echo "adding $zsh_path to /etc/shells"
-        echo "$zsh_path" | sudo tee -a /etc/shells
-    fi
-
     if [[ "$SHELL" != "$zsh_path" ]]; then
+        echo "\\nSetting Zsh as the default shell..."
         chsh -s "$zsh_path"
-        echo "default shell changed to $zsh_path"
+        echo "Done"
     fi
 
-    echo "Done. Reload your terminal."
-fi
+    if test ! "$( command -v rvm )"; then
+        echo "\\nInstalling RVM..."
+        sh -c "$(curl -sSL https://get.rvm.io)"
+        echo "Done"
+    fi
 
-source link.sh
+    echo "\\nInstall fzf key bindings..."
+    $(brew --prefix)/opt/fzf/install
+    echo "\\nDone"
+
+    source link.sh
+
+    echo "\\n\\nYou'll need to reload your terminal with ($ source ~/.zshrc)"
+    echo "After the terminal is reloaded, you'll need to run ($ nvim +PlugInstall) to install all the Neovim plugins."
+fi
