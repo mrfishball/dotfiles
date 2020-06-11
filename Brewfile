@@ -27,6 +27,7 @@ brew "netcat"
 brew "node", link: false
 brew "pkg-config"
 brew "reattach-to-user-namespace"
+brew "ripgrep"
 brew "tmate"
 brew "tmux"
 brew "tmux-mem-cpu-load"
