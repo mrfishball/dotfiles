@@ -101,7 +101,7 @@ source "$HOME/.vim/plugged/gruvbox/gruvbox_256palette.sh"
 # Example aliases
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
-# export FZF_DEFAULT_OPTS=' --preview="cat {}" --preview-window=right:50%:wrap'
+export FZF_DEFAULT_OPTS=' --preview="cat {}" --preview-window=right:50%:wrap'
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
 
