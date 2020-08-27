@@ -10,6 +10,9 @@ export RUBYOPT="-W0"
 
 . $(brew --prefix asdf)/asdf.sh
 
+eval "$(pyenv init -)"
+eval "$(pyenv virtualenv-init -)"
+
 # Set name of the theme to load --- if set to "random", it will
 # load a random theme each time oh-my-zsh is loaded, in which case,
 # to know which specific one was loaded, run: echo $RANDOM_THEME
@@ -110,3 +113,9 @@ export PATH="$PATH:$HOME/.rvm/bin"
 
 # added by travis gem
 [ -f /Users/steventuetpiukwok/.travis/travis.sh ] && source /Users/steventuetpiukwok/.travis/travis.sh
+
+# The next line updates PATH for the Google Cloud SDK.
+if [ -f '/Users/steventuetpiukwok/google-cloud-sdk/path.zsh.inc' ]; then . '/Users/steventuetpiukwok/google-cloud-sdk/path.zsh.inc'; fi
+
+# The next line enables shell command completion for gcloud.
+if [ -f '/Users/steventuetpiukwok/google-cloud-sdk/completion.zsh.inc' ]; then . '/Users/steventuetpiukwok/google-cloud-sdk/completion.zsh.inc'; fi

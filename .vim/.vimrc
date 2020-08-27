@@ -186,7 +186,7 @@ let g:NERDToggleCheckAllLines = 1
 let g:ale_fix_on_save = 1
 let g:ale_linter_aliases = {'typescriptreact': 'typescript'}
 let g:ale_linters = {'ruby': ['rubocop'], 'javascript': ['eslint'], 'typescript': ['tsserver', 'eslint'], 'vue': ['eslint']}
-let g:ale_fixers = {'ruby': ['rubocop'], '*': ['remove_trailing_lines', 'trim_whitespace'], 'javascript': ['eslint'], 'typescript': ['eslint'], 'vue': ['eslint']}
+let g:ale_fixers = {'elixir': ['mix_format'], 'ruby': ['rubocop'], '*': ['remove_trailing_lines', 'trim_whitespace'], 'javascript': ['eslint'], 'typescript': ['eslint'], 'vue': ['eslint']}
 let g:ale_sign_error = '>>'
 let g:ale_sign_warning = '--'
 

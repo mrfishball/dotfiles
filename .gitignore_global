@@ -1,4 +1,7 @@
 tags
+*tags*.*
 .DS_Store
 /* Dockerfile */
 /* docker-compose.yml */
+.env
+.env.*.local
