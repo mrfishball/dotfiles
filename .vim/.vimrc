@@ -45,7 +45,8 @@ endif
 let g:gruvbox_contrast_light = 'hard'
 let g:gruvbox_contrast_dark = 'hard'
 
-set background=light
+" set background=light
+set background=dark
 colorscheme gruvbox
 " colorscheme solarized
 highlight search cterm=underline ctermfg=214 gui=underline guifg=#fabd2f
@@ -84,9 +85,12 @@ set smartcase
 
 " line numbers
 set number
-if exists('&relativenumber')
-  set relativenumber
-endif
+" if exists('&relativenumber')
+"   set relativenumber
+" endif
+
+set cursorline
+hi CursorLine term=bold cterm=bold guibg=Grey25
 
 set listchars=eol:↲,tab:▶▹,nbsp:␣,extends:…,trail:•
 set exrc
