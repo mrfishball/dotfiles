@@ -1,4 +1,5 @@
 # If you come from bash you might have to change your $PATH.
+zmodload zsh/zprof
 export PATH=$HOME/bin:/usr/local/bin:$PATH
 export PATH=/usr/local/Cellar/git/bin:$PATH
 export PATH="/usr/local/opt/ruby/bin:$PATH"
@@ -11,7 +12,7 @@ export RUBYOPT="-W0"
 . $(brew --prefix asdf)/asdf.sh
 
 eval "$(pyenv init -)"
-eval "$(pyenv virtualenv-init -)"
+# eval "$(pyenv virtualenv-init -)"
 eval "$(direnv hook zsh)"
 
 # Set name of the theme to load --- if set to "random", it will
@@ -19,6 +20,11 @@ eval "$(direnv hook zsh)"
 # to know which specific one was loaded, run: echo $RANDOM_THEME
 # See https://github.com/robbyrussell/oh-my-zsh/wiki/Themes
 ZSH_THEME="robbyrussell"
+
+timezsh() {
+  shell=${1-$SHELL}
+  for i in $(seq 1 10); do /usr/bin/time $shell -i -c exit; done
+}
 
 # Set list of themes to pick from when loading at random
 # Setting this variable when ZSH_THEME=random will cause zsh to load
