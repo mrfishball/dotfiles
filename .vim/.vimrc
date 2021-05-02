@@ -27,6 +27,7 @@ Plug 'tpope/vim-repeat'
 Plug 'tpope/vim-surround'
 Plug 'tpope/vim-unimpaired'
 Plug 'elixir-editors/vim-elixir'
+Plug 'OmniSharp/omnisharp-vim'
 
 call plug#end()
 
@@ -189,7 +190,7 @@ let g:NERDToggleCheckAllLines = 1
 
 let g:ale_fix_on_save = 1
 let g:ale_linter_aliases = {'typescriptreact': 'typescript'}
-let g:ale_linters = {'ruby': ['rubocop'], 'javascript': ['eslint'], 'typescript': ['tsserver', 'eslint'], 'vue': ['eslint']}
+let g:ale_linters = {'ruby': ['rubocop'], 'javascript': ['eslint'], 'typescript': ['tsserver', 'eslint'], 'vue': ['eslint'], 'cs': ['OmniSharp']}
 let g:ale_fixers = {'elixir': ['mix_format'], 'ruby': ['rubocop'], '*': ['remove_trailing_lines', 'trim_whitespace'], 'javascript': ['eslint'], 'typescript': ['eslint'], 'vue': ['eslint']}
 let g:ale_sign_error = '>>'
 let g:ale_sign_warning = '--'
