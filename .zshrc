@@ -11,9 +11,7 @@ export RUBYOPT="-W0"
 
 . $(brew --prefix asdf)/asdf.sh
 
-eval "$(pyenv init -)"
 eval "$(direnv hook zsh)"
-# eval "$(pyenv virtualenv-init -)"
 
 # Set name of the theme to load --- if set to "random", it will
 # load a random theme each time oh-my-zsh is loaded, in which case,
