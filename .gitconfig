@@ -2,7 +2,7 @@
 [user]
 # Please adapt and uncomment the following lines:
 name = Steven Tuet Piu Kwok
-email = mrfishball@gmail.com
+	email = skwok@grubhub.com
 
 [alias]
     lg = log --color --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --branches

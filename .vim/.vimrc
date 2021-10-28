@@ -29,6 +29,7 @@ Plug 'tpope/vim-unimpaired'
 Plug 'elixir-editors/vim-elixir'
 Plug 'OmniSharp/omnisharp-vim'
 Plug 'mileszs/ack.vim'
+Plug 'tfnico/vim-gradle'
 
 call plug#end()
 
@@ -47,11 +48,11 @@ endif
 let g:gruvbox_contrast_light = 'hard'
 let g:gruvbox_contrast_dark = 'hard'
 
-" set background=light
-set background=dark
+set background=light
+" set background=dark
 colorscheme gruvbox
 " colorscheme solarized
-highlight search cterm=underline ctermfg=214 gui=underline guifg=#fabd2f
+" highlight search cterm=underline ctermfg=214 gui=underline guifg=#fabd2f
 
 " Neovim Terminal
 if has('nvim')
@@ -61,7 +62,6 @@ if has('nvim')
     au TermOpen * setlocal nonumber norelativenumber
   augroup END
 endif
-
 
 set cc=80
 set ls=2  " always show status line
@@ -92,7 +92,38 @@ set number
 " endif
 
 set cursorline
-hi CursorLine term=bold cterm=bold guibg=Grey25
+" hi CursorLine term=bold cterm=bold guibg=Grey25
+
+" TypeScript Syntax Highlight Settings {{{
+" dark red
+hi tsxTagName guifg=#E06C75
+hi tsxComponentName guifg=#E06C75
+hi tsxCloseComponentName guifg=#E06C75
+
+" orange
+hi tsxCloseString guifg=#F99575
+hi tsxCloseTag guifg=#F99575
+hi tsxCloseTagName guifg=#F99575
+hi tsxAttributeBraces guifg=#F99575
+hi tsxEqual guifg=#F99575
+
+" yellow
+hi tsxAttrib guifg=#F8BD7F cterm=italic
+
+" light-grey
+hi tsxTypeBraces guifg=#999999
+" dark-grey
+hi tsxTypes guifg=#666666
+
+hi ReactState guifg=#C176A7
+hi ReactProps guifg=#D19A66
+hi ApolloGraphQL guifg=#CB886B
+hi Events ctermfg=204 guifg=#56B6C2
+hi ReduxKeywords ctermfg=204 guifg=#C678DD
+hi ReduxHooksKeywords ctermfg=204 guifg=#C176A7
+hi WebBrowser ctermfg=204 guifg=#56B6C2
+hi ReactLifeCycleMethods ctermfg=204 guifg=#D19A66
+"}}}
 
 set listchars=eol:↲,tab:▶▹,nbsp:␣,extends:…,trail:•
 set exrc
@@ -107,6 +138,7 @@ endif
 augroup filetypesettings
   autocmd!
   au filetype typescript.tsx setlocal ts=2 softtabstop=2 sw=2
+  au filetype typescript.ts setlocal ts=2 softtabstop=2 sw=2
   au filetype javascript setlocal ts=2 softtabstop=2 sw=2
   au filetype htmldjango setlocal ts=4 softtabstop=4 sw=4
   au filetype vim setlocal ts=2 softtabstop=2 sw=2
@@ -147,7 +179,7 @@ execute pathogen#infect()
 :nnoremap <leader>pu :PlugUpdate<cr>
 :nnoremap <leader>pg :PlugUpgrade<cr>
 :nnoremap <leader>pc :PlugClean!<cr>
-:nnoremap <leader>gs :Gstatus<cr>
+:nnoremap <leader>gs :Git<cr>
 :nnoremap <leader>at :ALEToggle<cr>
 :nnoremap <leader>mp :MarkdownPreview<cr>
 :nnoremap <leader>mx :MarkdownPreviewStop<cr>
@@ -201,11 +233,62 @@ let g:ale_linters = {'ruby': ['rubocop'], 'javascript': ['eslint'], 'typescript'
 let g:ale_fixers = {'elixir': ['mix_format'], 'ruby': ['rubocop'], '*': ['remove_trailing_lines', 'trim_whitespace'], 'javascript': ['eslint'], 'typescript': ['eslint'], 'vue': ['eslint']}
 let g:ale_sign_error = '>>'
 let g:ale_sign_warning = '--'
+let test#java#runner = 'gradletest'
 
 let g:ycm_show_diagnostics_ui = 0
 let g:ycm_enable_diagnostic_signs = 0
 let g:ycm_enable_diagnostic_highlighting = 0
 let g:test#preserve_screen = 0
+
+let g:gutentags_ctags_exclude = [
+      \ '*.git', '*.svg', '*.hg',
+      \ '*/tests/*',
+      \ 'build',
+      \ 'build-cache',
+      \ 'es',
+      \ 'dist',
+      \ '*sites/*/files/*',
+      \ 'bin',
+      \ 'node_modules',
+      \ 'bower_components',
+      \ 'cache',
+      \ 'compiled',
+      \ 'docs',
+      \ 'example',
+      \ 'bundle',
+      \ 'vendor',
+      \ '*.md',
+      \ '*-lock.json',
+      \ '*.lock',
+      \ '*bundle*.js',
+      \ '*build*.js',
+      \ '.*rc*',
+      \ '*.json',
+      \ '*.min.*',
+      \ '*.map',
+      \ '*.bak',
+      \ '*.zip',
+      \ '*.pyc',
+      \ '*.class',
+      \ '*.sln',
+      \ '*.Master',
+      \ '*.csproj',
+      \ '*.tmp',
+      \ '*.csproj.user',
+      \ '*.cache',
+      \ '*.pdb',
+      \ 'tags*',
+      \ 'cscope.*',
+      \ '*.css',
+      \ '*.less',
+      \ '*.scss',
+      \ '*.exe', '*.dll',
+      \ '*.mp3', '*.ogg', '*.flac',
+      \ '*.swp', '*.swo',
+      \ '*.bmp', '*.gif', '*.ico', '*.jpg', '*.png',
+      \ '*.rar', '*.zip', '*.tar', '*.tar.gz', '*.tar.xz', '*.tar.bz2',
+      \ '*.pdf', '*.doc', '*.docx', '*.ppt', '*.pptx',
+      \ ]
 
 " Load all plugins now.
 " Plugins need to be added to runtimepath before helptags can be generated.

@@ -8,6 +8,13 @@ export PATH="$HOME/.cargo/bin:$PATH"
 # Path to your oh-my-zsh installation.
 export ZSH=$HOME/.oh-my-zsh
 export RUBYOPT="-W0"
+export PATH=~/Desktop/work/grubhub/dockhub/bin:$PATH
+
+export AWS_REGION=$(aws configure get grubhub.region)
+export AWS_SECRET_KEY=$(aws configure get grubhub.aws_secret_access_key)
+export AWS_SECRET_ACCESS_KEY=$(aws configure get grubhub.aws_secret_access_key)
+export AWS_ACCESS_KEY_ID=$(aws configure get grubhub.aws_access_key_id)
+export AWS_SNSQS_PREFIX=$(aws configure get grubhub.snsqs_prefix)
 
 . $(brew --prefix asdf)/asdf.sh
 
@@ -124,3 +131,14 @@ if [ -f '/Users/steventuetpiukwok/google-cloud-sdk/path.zsh.inc' ]; then . '/Use
 
 # The next line enables shell command completion for gcloud.
 if [ -f '/Users/steventuetpiukwok/google-cloud-sdk/completion.zsh.inc' ]; then . '/Users/steventuetpiukwok/google-cloud-sdk/completion.zsh.inc'; fi
+# export JAVA_TOOL_OPTIONS=-Dcom.amazonaws.sdk.ec2MetadataServiceEndpointOverride=localhost
+# export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk1.8.0_201.jdk/Contents/Home
+# export PATH="/usr/local/opt/cassandra@2.2/bin:$PATH"
+# export CASSANDRA_CONTACTPOINTS=172.10.10.1
+# PYTHONWARNINGS=ignore::yaml.YAMLLoadWarning
+export CASSANDRA_CONTACTPOINTS=172.10.10.1
+export JAVA_TOOL_OPTIONS=-Dcom.amazonaws.sdk.ec2MetadataServiceEndpointOverride=localhost
+export PATH=/usr/local/opt/cassandra@2.2/bin:/Users/steventuetpiukwok/.asdf/shims:/usr/local/Cellar/asdf/0.8.1_1/libexec/bin:/Users/steventuetpiukwok/Desktop/work/grubhub/dockhub/bin:/Users/steventuetpiukwok/.cargo/bin:/usr/local/go/bin:/usr/local/opt/ruby/bin:/usr/local/Cellar/git/bin:/Users/steventuetpiukwok/bin:/usr/local/bin:/usr/local/opt/cassandra@2.2/bin:/dev/garcon/dockhub/bin:/Users/steventuetpiukwok/.cargo/bin:/usr/local/go/bin:/usr/local/opt/ruby/bin:/usr/local/Cellar/git/bin:/Users/steventuetpiukwok/bin:/usr/local/bin:/usr/local/opt/cassandra@2.2/bin:/dev/garcon/dockhub/bin:/Users/steventuetpiukwok/.cargo/bin:/usr/local/go/bin:/usr/local/opt/ruby/bin:/usr/local/Cellar/git/bin:/Users/steventuetpiukwok/bin:/usr/local/bin:/Users/steventuetpiukwok/.pyenv/shims:/Users/steventuetpiukwok/.pyenv/bin:/Users/steventuetpiukwok/.cargo/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/go/bin:/Library/Apple/usr/bin:/usr/local/opt/cassandra@2.2/bin:/dev/garcon/dockhub/bin:/Users/steventuetpiukwok/.cargo/bin:/usr/local/opt/ruby/bin:/usr/local/Cellar/git/bin:/Users/steventuetpiukwok/bin:/Users/steventuetpiukwok/.pyenv/shims:/Users/steventuetpiukwok/.pyenv/bin:/Users/steventuetpiukwok/.fzf/bin:/Users/steventuetpiukwok/.rvm/bin:/Users/steventuetpiukwok/.rvm/bin:/Users/steventuetpiukwok/.rvm/bin:/Users/steventuetpiukwok/.rvm/bin:/Users/steventuetpiukwok/Desktop/work/grubhub/dockhub
+export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk1.8.0_201.jdk/Contents/Home
+export PATH="/usr/local/opt/cassandra@2.2/bin:$PATH"
+PYTHONWARNINGS=ignore::yaml.YAMLLoadWarning
