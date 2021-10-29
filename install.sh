@@ -7,9 +7,21 @@ if [ "$(uname)" == "Darwin" ]; then
     sudo xcodebuild -license
     echo "Done"
 
+    echo "\\nInstaling Oh My Zsh..."
+    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+    echo "Done"
+
+    # Set zsh as the default shell
+    zsh_path="$( command -v zsh )"
+    if [[ "$SHELL" != "$zsh_path" ]]; then
+        echo "\\nSetting Zsh as the default shell..."
+        chsh -s "$zsh_path"
+        echo "Done"
+    fi
+
     if test ! "$( command -v brew )"; then
         echo "\\nInstalling homebrew..."
-        sh -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+        sh -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
         echo "Done"
     else
         echo "\\nHomebrew already installed..."
@@ -36,16 +48,6 @@ if [ "$(uname)" == "Darwin" ]; then
     pip3 install pynvim
     echo "Done"
 
-    echo "\\nInstaling Oh My Zsh..."
-    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
-    echo "Done"
-
-    zsh_path="$( command -v zsh )"
-    if [[ "$SHELL" != "$zsh_path" ]]; then
-        echo "\\nSetting Zsh as the default shell..."
-        chsh -s "$zsh_path"
-        echo "Done"
-    fi
 
     if test ! "$( command -v rvm )"; then
         echo "\\nInstalling RVM..."
@@ -57,7 +59,8 @@ if [ "$(uname)" == "Darwin" ]; then
     $(brew --prefix)/opt/fzf/install
     echo "\\nDone"
 
-    source link.sh
+    # Symlink config files in bash because .zsh_history auto generates everytime a command is executed in zsh
+    bash -c "$(source link.sh)"
 
     echo "\\n\\nYou'll need to reload your terminal with ($ source ~/.zshrc)"
     echo "After the terminal is reloaded, you'll need to run ($ nvim +PlugInstall) to install all the Neovim plugins."
