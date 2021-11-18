@@ -1,4 +1,4 @@
-# If you come from bash you might have to change your $PATH.
+the python plugin might not be available# If you come from bash you might have to change your $PATH.
 zmodload zsh/zprof
 export PATH=$HOME/bin:/usr/local/bin:$PATH
 export PATH=/usr/local/Cellar/git/bin:$PATH
@@ -9,6 +9,8 @@ export PATH="$HOME/.cargo/bin:$PATH"
 export ZSH=$HOME/.oh-my-zsh
 export RUBYOPT="-W0"
 export PATH=~/Desktop/work/grubhub/dockhub/bin:$PATH
+export PATH="$PYENV_ROOT/shims:$PATH"
+export PATH="$PYENV_ROOT/bin:$PATH"
 
 export AWS_REGION=$(aws configure get grubhub.region)
 export AWS_SECRET_KEY=$(aws configure get grubhub.aws_secret_access_key)
