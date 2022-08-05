@@ -1,22 +1,16 @@
-the python plugin might not be available# If you come from bash you might have to change your $PATH.
 zmodload zsh/zprof
 export PATH=$HOME/bin:/usr/local/bin:$PATH
 export PATH=/usr/local/Cellar/git/bin:$PATH
 export PATH="/usr/local/opt/ruby/bin:$PATH"
 export PATH="/usr/local/go/bin:$PATH"
 export PATH="$HOME/.cargo/bin:$PATH"
+
 # Path to your oh-my-zsh installation.
 export ZSH=$HOME/.oh-my-zsh
-export RUBYOPT="-W0"
-export PATH=~/Desktop/work/grubhub/dockhub/bin:$PATH
-export PATH="$PYENV_ROOT/shims:$PATH"
-export PATH="$PYENV_ROOT/bin:$PATH"
 
-export AWS_REGION=$(aws configure get grubhub.region)
-export AWS_SECRET_KEY=$(aws configure get grubhub.aws_secret_access_key)
-export AWS_SECRET_ACCESS_KEY=$(aws configure get grubhub.aws_secret_access_key)
-export AWS_ACCESS_KEY_ID=$(aws configure get grubhub.aws_access_key_id)
-export AWS_SNSQS_PREFIX=$(aws configure get grubhub.snsqs_prefix)
+export PATH="$PYENV_ROOT/shims:$PATH"
+export PATH="/usr/local/opt/bzip2/bin:$PATH"
+
 
 . $(brew --prefix asdf)/asdf.sh
 
@@ -28,10 +22,10 @@ eval "$(direnv hook zsh)"
 # See https://github.com/robbyrussell/oh-my-zsh/wiki/Themes
 ZSH_THEME="robbyrussell"
 
-timezsh() {
-  shell=${1-$SHELL}
-  for i in $(seq 1 10); do /usr/bin/time $shell -i -c exit; done
-}
+# timezsh() {
+#   shell=${1-$SHELL}
+#   for i in $(seq 1 10); do /usr/bin/time $shell -i -c exit; done
+# }
 
 # Set list of themes to pick from when loading at random
 # Setting this variable when ZSH_THEME=random will cause zsh to load
@@ -133,9 +127,3 @@ if [ -f '/Users/steventuetpiukwok/google-cloud-sdk/path.zsh.inc' ]; then . '/Use
 
 # The next line enables shell command completion for gcloud.
 if [ -f '/Users/steventuetpiukwok/google-cloud-sdk/completion.zsh.inc' ]; then . '/Users/steventuetpiukwok/google-cloud-sdk/completion.zsh.inc'; fi
-export CASSANDRA_CONTACTPOINTS=172.10.10.1
-export JAVA_TOOL_OPTIONS=-Dcom.amazonaws.sdk.ec2MetadataServiceEndpointOverride=localhost
-export PATH=/usr/local/opt/cassandra@2.2/bin:/Users/steventuetpiukwok/.asdf/shims:/usr/local/Cellar/asdf/0.8.1_1/libexec/bin:/Users/steventuetpiukwok/Desktop/work/grubhub/dockhub/bin:/Users/steventuetpiukwok/.cargo/bin:/usr/local/go/bin:/usr/local/opt/ruby/bin:/usr/local/Cellar/git/bin:/Users/steventuetpiukwok/bin:/usr/local/bin:/usr/local/opt/cassandra@2.2/bin:/dev/garcon/dockhub/bin:/Users/steventuetpiukwok/.cargo/bin:/usr/local/go/bin:/usr/local/opt/ruby/bin:/usr/local/Cellar/git/bin:/Users/steventuetpiukwok/bin:/usr/local/bin:/usr/local/opt/cassandra@2.2/bin:/dev/garcon/dockhub/bin:/Users/steventuetpiukwok/.cargo/bin:/usr/local/go/bin:/usr/local/opt/ruby/bin:/usr/local/Cellar/git/bin:/Users/steventuetpiukwok/bin:/usr/local/bin:/Users/steventuetpiukwok/.pyenv/shims:/Users/steventuetpiukwok/.pyenv/bin:/Users/steventuetpiukwok/.cargo/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/go/bin:/Library/Apple/usr/bin:/usr/local/opt/cassandra@2.2/bin:/dev/garcon/dockhub/bin:/Users/steventuetpiukwok/.cargo/bin:/usr/local/opt/ruby/bin:/usr/local/Cellar/git/bin:/Users/steventuetpiukwok/bin:/Users/steventuetpiukwok/.pyenv/shims:/Users/steventuetpiukwok/.pyenv/bin:/Users/steventuetpiukwok/.fzf/bin:/Users/steventuetpiukwok/.rvm/bin:/Users/steventuetpiukwok/.rvm/bin:/Users/steventuetpiukwok/.rvm/bin:/Users/steventuetpiukwok/.rvm/bin:/Users/steventuetpiukwok/Desktop/work/grubhub/dockhub
-export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk1.8.0_201.jdk/Contents/Home
-export PATH="/usr/local/opt/cassandra@2.2/bin:$PATH"
-PYTHONWARNINGS=ignore::yaml.YAMLLoadWarning

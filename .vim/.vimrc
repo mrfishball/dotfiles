@@ -11,7 +11,7 @@ Plug 'altercation/vim-colors-solarized'
 Plug 'janko/vim-test'
 Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
 Plug 'junegunn/fzf.vim'
-Plug 'iamcco/markdown-preview.nvim', { 'do': 'cd app & yarn install'  }
+Plug 'iamcco/markdown-preview.nvim', { 'do': { -> mkdp#util#install() }, 'for': ['markdown', 'vim-plug']}
 Plug '/usr/local/opt/fzf'
 Plug 'junegunn/vim-easy-align'
 Plug 'morhetz/gruvbox'
@@ -234,6 +234,7 @@ let g:ale_fixers = {'elixir': ['mix_format'], 'ruby': ['rubocop'], '*': ['remove
 let g:ale_sign_error = '>>'
 let g:ale_sign_warning = '--'
 let test#java#runner = 'gradletest'
+let vim_markdown_preview_github=1
 
 let g:ycm_show_diagnostics_ui = 0
 let g:ycm_enable_diagnostic_signs = 0
