@@ -30,6 +30,7 @@ Plug 'elixir-editors/vim-elixir'
 Plug 'OmniSharp/omnisharp-vim'
 Plug 'mileszs/ack.vim'
 Plug 'tfnico/vim-gradle'
+Plug 'github/copilot.vim'
 
 call plug#end()
 
@@ -71,9 +72,9 @@ if exists('&belloff')
 endif
 
 " tabs
-set tabstop=4
-set shiftwidth=4
-set softtabstop=4
+set tabstop=2
+set shiftwidth=2
+set softtabstop=2
 
 set smarttab
 set expandtab
@@ -240,6 +241,14 @@ let g:ycm_show_diagnostics_ui = 0
 let g:ycm_enable_diagnostic_signs = 0
 let g:ycm_enable_diagnostic_highlighting = 0
 let g:test#preserve_screen = 0
+
+let g:gutentags_add_default_project_roots = 0
+let g:gutentags_project_root = ['package.json', '.git']
+
+let g:gutentags_generate_on_new = 1
+let g:gutentags_generate_on_missing = 1
+let g:gutentags_generate_on_write = 1
+let g:gutentags_generate_on_empty_buffer = 0
 
 let g:gutentags_ctags_exclude = [
       \ '*.git', '*.svg', '*.hg',
