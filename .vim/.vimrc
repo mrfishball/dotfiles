@@ -12,7 +12,13 @@ Plug 'janko/vim-test'
 Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
 Plug 'junegunn/fzf.vim'
 Plug 'iamcco/markdown-preview.nvim', { 'do': ':call mkdp#util#install()', 'for': 'markdown', 'on': 'MarkdownPreview' }
-Plug '/usr/local/opt/fzf'
+
+if isdirectory("/usr/local/opt/fzf") " Homebrew is installed in /opt/homebrew/ on Apple Silicone
+  Plug '/usr/local/opt/fzf'
+else
+  Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
+endif
+
 Plug 'junegunn/vim-easy-align'
 Plug 'morhetz/gruvbox'
 Plug 'pangloss/vim-javascript'
