@@ -11,7 +11,7 @@ Plug 'altercation/vim-colors-solarized'
 Plug 'janko/vim-test'
 Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
 Plug 'junegunn/fzf.vim'
-Plug 'iamcco/markdown-preview.nvim', { 'do': { -> mkdp#util#install() }, 'for': ['markdown', 'vim-plug']}
+Plug 'iamcco/markdown-preview.nvim', { 'do': ':call mkdp#util#install()', 'for': 'markdown', 'on': 'MarkdownPreview' }
 Plug '/usr/local/opt/fzf'
 Plug 'junegunn/vim-easy-align'
 Plug 'morhetz/gruvbox'
