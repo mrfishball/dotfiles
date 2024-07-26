@@ -12,9 +12,6 @@ export ZSH=$HOME/.oh-my-zsh
 export PATH="$PYENV_ROOT/shims:$PATH"
 export PATH="/usr/local/opt/bzip2/bin:$PATH"
 
-
-. $(brew --prefix asdf)/asdf.sh
-
 eval "$(direnv hook zsh)"
 
 # Set name of the theme to load --- if set to "random", it will
