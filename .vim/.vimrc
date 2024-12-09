@@ -236,11 +236,21 @@ let g:NERDToggleCheckAllLines = 1
 
 let g:ale_fix_on_save = 1
 let g:ale_linter_aliases = {'typescriptreact': 'typescript'}
-let g:ale_linters = {'ruby': ['rubocop'], 'javascript': ['eslint'], 'typescript': ['tsserver', 'eslint'], 'vue': ['eslint'], 'cs': ['OmniSharp']}
-let g:ale_fixers = {'elixir': ['mix_format'], 'ruby': ['rubocop'], '*': ['remove_trailing_lines', 'trim_whitespace'], 'javascript': ['eslint'], 'typescript': ['eslint'], 'vue': ['eslint']}
+let g:ale_linters = {'ruby': ['rubocop'], 'javascript': ['eslint'], 'typescript': ['tsserver', 'eslint'], 'vue': ['eslint'], 'cs': ['OmniSharp'], 'python': ['mypy']}
+let g:ale_fixers = {'elixir': ['mix_format'], 'ruby': ['rubocop'], '*': ['remove_trailing_lines', 'trim_whitespace'], 'javascript': ['eslint'], 'typescript': ['eslint'], 'vue': ['eslint'], 'python': ['black']}
+
+let g:ale_python_mypy_use_global = 0
+let g:ale_python_mypy_auto_pipenv = 1
+let g:ale_python_mypy_auto_poetry = 1
+
+let g:ale_python_black_auto_poetry = 1
+
 let g:ale_sign_error = '>>'
 let g:ale_sign_warning = '--'
-let test#java#runner = 'gradletest'
+
+" let test#java#runner = 'gradletest'
+let test#python#runner = 'pytest'
+
 let vim_markdown_preview_github=1
 
 let g:ycm_show_diagnostics_ui = 0

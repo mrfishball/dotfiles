@@ -14,4 +14,4 @@ email = skwok@8thlight.com
 	autosetuprebase = always
 	autosetupmerge = always
 [core]
-	excludesfile = /Users/steventuetpiukwok/.gitignore_global
+	excludesFile = /Users/steven/.gitignore_global
