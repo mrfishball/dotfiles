@@ -53,10 +53,10 @@ if exists('&termguicolors')
 endif
 
 let g:gruvbox_contrast_light = 'hard'
-let g:gruvbox_contrast_dark = 'hard'
+" let g:gruvbox_contrast_dark = 'hard'
 
-set background=light
-" set background=dark
+" set background=light
+set background=dark
 colorscheme gruvbox
 " colorscheme solarized
 " highlight search cterm=underline ctermfg=214 gui=underline guifg=#fabd2f
