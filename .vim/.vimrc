@@ -1,9 +1,7 @@
 call plug#begin('~/.vim/plugged')
 if has('nvim')
 	Plug 'w0rp/ale'
-  Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
 else
-  Plug 'Shougo/deoplete.nvim'
   Plug 'roxma/nvim-yarp'
   Plug 'roxma/vim-hug-neovim-rpc'
 endif
@@ -36,7 +34,13 @@ Plug 'elixir-editors/vim-elixir'
 Plug 'OmniSharp/omnisharp-vim'
 Plug 'mileszs/ack.vim'
 Plug 'tfnico/vim-gradle'
-Plug 'github/copilot.vim'
+Plug 'hrsh7th/nvim-cmp'
+Plug 'hrsh7th/cmp-nvim-lsp'
+Plug 'hrsh7th/cmp-buffer'
+Plug 'hrsh7th/cmp-path'
+Plug 'hrsh7th/cmp-cmdline'
+Plug 'L3MON4D3/LuaSnip'
+Plug 'saadparwaiz1/cmp_luasnip'
 
 call plug#end()
 
@@ -242,8 +246,13 @@ let g:ale_fixers = {'elixir': ['mix_format'], 'ruby': ['rubocop'], '*': ['remove
 let g:ale_python_mypy_use_global = 0
 let g:ale_python_mypy_auto_pipenv = 1
 let g:ale_python_mypy_auto_poetry = 1
-
 let g:ale_python_black_auto_poetry = 1
+
+
+let g:ale_python_black_executable = 'black'
+let g:ale_python_mypy_executable = 'mypy'
+
+let g:python3_host_prog = '/Users/steventuetpiukwok/.asdf/shims/python3'
 
 let g:ale_sign_error = '>>'
 let g:ale_sign_warning = '--'

@@ -3,6 +3,7 @@
 /* docker-compose.yml */
 .env
 .env.*.local
-*[0-9]*
 tags
 .*.icloud
+.claude/
+.tool-versions

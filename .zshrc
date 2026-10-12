@@ -1,16 +1,31 @@
+# 1. Homebrew Setup (Essential for Apple Silicon Macs)
 eval "$(/opt/homebrew/bin/brew shellenv)"
-zmodload zsh/zprof
-export PATH=$HOME/bin:/usr/local/bin:$PATH
-export PATH=/usr/local/Cellar/git/bin:$PATH
-export PATH="/usr/local/opt/ruby/bin:$PATH"
-export PATH="/usr/local/go/bin:$PATH"
-export PATH="$HOME/.cargo/bin:$PATH"
 
-# Path to your oh-my-zsh installation.
-export ZSH=$HOME/.oh-my-zsh
+# 2. Oh My Zsh Setup
+export ZSH="$HOME/.oh-my-zsh"
 
-export PATH="$PYENV_ROOT/shims:$PATH"
-export PATH="/usr/local/opt/bzip2/bin:$PATH"
+# 3. Consolidate System & Local Paths (Clean & Fast)
+# Removed /usr/local/ paths which are redundant or incorrect for Apple Silicon
+typeset -U path # Keeps your PATH clean by automatically preventing duplicate entries
+path=(
+  $HOME/bin
+  $HOME/.local/bin
+  $JAVA_HOME/bin
+  $HOME/.cargo/bin
+  $path
+)
+export PATH
+
+# 4. Version Managers & Tools (Only keep what you actually use)
+# pyenv
+if command -v pyenv &>/dev/null; then
+  export PATH="$PYENV_ROOT/shims:$PATH"
+fi
+
+# asdf
+if [ -d "${ASDF_DATA_DIR:-$HOME/.asdf}/shims" ]; then
+  export PATH="${ASDF_DATA_DIR:-$HOME/.asdf}/shims:$PATH"
+fi
 
 eval "$(direnv hook zsh)"
 
@@ -77,7 +92,7 @@ ZSH_THEME="robbyrussell"
 # Custom plugins may be added to ~/.oh-my-zsh/custom/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-plugins=(git)
+plugins=(git kubectl kubectx)
 
 source $ZSH/oh-my-zsh.sh
 source "$HOME/.vim/plugged/gruvbox/gruvbox_256palette.sh"
@@ -126,4 +141,5 @@ if [ -f '/Users/steventuetpiukwok/google-cloud-sdk/path.zsh.inc' ]; then . '/Use
 # The next line enables shell command completion for gcloud.
 if [ -f '/Users/steventuetpiukwok/google-cloud-sdk/completion.zsh.inc' ]; then . '/Users/steventuetpiukwok/google-cloud-sdk/completion.zsh.inc'; fi
 
-. /opt/homebrew/opt/asdf/libexec/asdf.sh
+alias python=python3
+export PATH="$HOME/.local/bin:$PATH"
