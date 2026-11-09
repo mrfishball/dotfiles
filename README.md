@@ -10,3 +10,7 @@
 ```
 
 Existing files are backed up to `~/.dotfiles_backup/<timestamp>/` before being replaced.
+
+### Claude Code
+
+Hooks, status line, and tools for Claude Code live in [`claude/`](claude/README.md).
