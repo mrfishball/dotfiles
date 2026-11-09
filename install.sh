@@ -60,6 +60,14 @@ link_dotfiles() {
 
     # Claude Code: link individual files, not the whole ~/.claude dir (it holds sessions and auth)
     link_file "$DOTFILES/claude/CLAUDE.md" "$HOME/.claude/CLAUDE.md"
+    link_file "$DOTFILES/claude/settings.json" "$HOME/.claude/settings.json"
+    link_file "$DOTFILES/claude/hooks" "$HOME/.claude/hooks"
+    link_file "$DOTFILES/claude/bin" "$HOME/.claude/bin"
+
+    # Local-only Claude files, never committed
+    mkdir -p "$HOME/.claude/private"
+    [ -f "$HOME/.claude/private/client-terms.txt" ] ||
+        printf '# Client terms the search guard blocks in outbound queries, one per line.\n' > "$HOME/.claude/private/client-terms.txt"
 
     [ "$BACKED_UP" -eq 1 ] && printf "\nReplaced files were backed up to %s\n" "$BACKUP_DIR"
 }

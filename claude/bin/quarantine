@@ -1,0 +1,144 @@
+#!/usr/bin/python3 -I
+"""Reversible delete: move paths into ~/.claude/trash instead of removing them.
+
+  quarantine [--session ID] PATH...   move paths aside (layout: <date>/<session>/<original path>)
+  quarantine --list [--days N]        show recent batches (default 14 days)
+  quarantine --restore ID             put back everything from a session or batch
+  quarantine --purge DAYS [--quiet]   delete quarantined files older than DAYS
+"""
+import argparse
+import json
+import os
+import shutil
+import sys
+import time
+from collections import OrderedDict
+
+TRASH = os.environ.get("CLAUDE_TRASH_DIR") or os.path.expanduser("~/.claude/trash")
+MANIFEST = os.path.join(TRASH, "manifest.jsonl")
+
+
+def entries():
+    try:
+        with open(MANIFEST) as f:
+            return [json.loads(line) for line in f if line.strip()]
+    except OSError:
+        return []
+
+
+def write_entries(items):
+    tmp = MANIFEST + ".tmp"
+    with open(tmp, "w") as f:
+        for e in items:
+            f.write(json.dumps(e) + "\n")
+    os.replace(tmp, MANIFEST)
+
+
+def move(paths, session):
+    session = session or "manual"
+    batch = time.strftime("%H%M%S") + f"-{os.getpid()}"
+    base = os.path.join(TRASH, time.strftime("%Y-%m-%d"), session, batch)
+    trash_real = os.path.realpath(TRASH)
+    home = os.path.expanduser("~")
+    moved, failed = [], 0
+    for p in paths:
+        src = os.path.abspath(os.path.expanduser(p))
+        if not os.path.lexists(src):
+            print(f"skip (not found): {p}", file=sys.stderr)
+            continue
+        if src in ("/", home) or os.path.realpath(src).startswith(trash_real + os.sep):
+            print(f"refusing: {p}", file=sys.stderr)
+            failed += 1
+            continue
+        dst = os.path.join(base, src.lstrip("/"))
+        os.makedirs(os.path.dirname(dst), exist_ok=True)
+        try:
+            shutil.move(src, dst)
+        except OSError as e:
+            print(f"failed: {p}: {e}", file=sys.stderr)
+            failed += 1
+            continue
+        moved.append({"ts": time.strftime("%Y-%m-%dT%H:%M:%S%z"), "session": session, "batch": batch,
+                      "original": src, "stored": dst, "cwd": os.getcwd()})
+    if moved:
+        os.makedirs(TRASH, exist_ok=True)
+        with open(MANIFEST, "a") as f:
+            for e in moved:
+                f.write(json.dumps(e) + "\n")
+        print(f"Quarantined {len(moved)} path(s). Restore with: quarantine --restore {batch}"
+              f"  (or --restore {session} for the whole session)")
+    return 1 if failed else 0
+
+
+def restore(ident):
+    items = [e for e in entries() if ident in (e["session"], e["batch"]) and os.path.lexists(e["stored"])]
+    if not items:
+        print(f"Nothing quarantined under '{ident}'.", file=sys.stderr)
+        return 1
+    status = 0
+    for e in reversed(items):
+        if os.path.lexists(e["original"]):
+            print(f"skip (something already exists there): {e['original']}", file=sys.stderr)
+            status = 1
+            continue
+        os.makedirs(os.path.dirname(e["original"]), exist_ok=True)
+        shutil.move(e["stored"], e["original"])
+        print(f"restored: {e['original']}")
+    write_entries([e for e in entries() if os.path.lexists(e["stored"])])
+    return status
+
+
+def list_batches(days):
+    cutoff = time.strftime("%Y-%m-%d", time.localtime(time.time() - days * 86400))
+    batches = OrderedDict()
+    for e in entries():
+        if e["ts"][:10] >= cutoff and os.path.lexists(e["stored"]):
+            batches.setdefault((e["session"], e["batch"]), []).append(e)
+    if not batches:
+        print("Quarantine is empty.")
+    for (session, batch), items in batches.items():
+        print(f"{items[0]['ts'][:16]}  session {session[:8]}  batch {batch}  ({len(items)} path(s))")
+        for e in items:
+            print(f"    {e['original']}")
+    return 0
+
+
+def purge(days, quiet):
+    cutoff = time.strftime("%Y-%m-%d", time.localtime(time.time() - days * 86400))
+    removed = 0
+    for d in os.listdir(TRASH) if os.path.isdir(TRASH) else []:
+        path = os.path.join(TRASH, d)
+        if os.path.isdir(path) and len(d) == 10 and d < cutoff:
+            shutil.rmtree(path, ignore_errors=True)
+            removed += 1
+    if os.path.exists(MANIFEST):
+        write_entries([e for e in entries() if os.path.lexists(e["stored"])])
+    if not quiet:
+        print(f"Purged {removed} day folder(s) older than {days} days.")
+    return 0
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("paths", nargs="*")
+    ap.add_argument("--session")
+    ap.add_argument("--list", action="store_true")
+    ap.add_argument("--days", type=int, default=14)
+    ap.add_argument("--restore", metavar="ID")
+    ap.add_argument("--purge", type=int, metavar="DAYS")
+    ap.add_argument("--quiet", action="store_true")
+    a = ap.parse_args()
+    if a.restore:
+        return restore(a.restore)
+    if a.list:
+        return list_batches(a.days)
+    if a.purge is not None:
+        return purge(a.purge, a.quiet)
+    if not a.paths:
+        ap.print_help()
+        return 2
+    return move(a.paths, a.session)
+
+
+if __name__ == "__main__":
+    sys.exit(main())

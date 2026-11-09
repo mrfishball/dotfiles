@@ -1,0 +1,46 @@
+{
+  "autoMemoryDirectory": "~/.claude/memory",
+  "statusLine": {
+    "type": "command",
+    "command": "/usr/bin/python3 -I \"$HOME/.claude/hooks/statusline.py\""
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [{ "type": "command", "command": "/usr/bin/python3 -I \"$HOME/.claude/hooks/destructive_gate.py\"", "timeout": 10 }]
+      },
+      {
+        "matcher": "WebSearch|WebFetch|mcp__claude_ai_O_Reilly__.*",
+        "hooks": [{ "type": "command", "command": "/usr/bin/python3 -I \"$HOME/.claude/hooks/search_guard.py\"", "timeout": 10 }]
+      }
+    ],
+    "PostToolUse": [
+      { "matcher": "*", "hooks": [{ "type": "command", "command": "/usr/bin/python3 -I \"$HOME/.claude/hooks/activity_log.py\"", "timeout": 5 }] }
+    ],
+    "PostToolUseFailure": [
+      { "matcher": "*", "hooks": [{ "type": "command", "command": "/usr/bin/python3 -I \"$HOME/.claude/hooks/activity_log.py\"", "timeout": 5 }] }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          { "type": "command", "command": "/usr/bin/python3 -I \"$HOME/.claude/hooks/activity_log.py\"", "timeout": 5 },
+          { "type": "command", "command": "/usr/bin/python3 -I \"$HOME/.claude/hooks/session_reminder.py\"", "timeout": 10 },
+          { "type": "command", "command": "/usr/bin/python3 -I \"$HOME/.claude/hooks/lint_reminder.py\"", "timeout": 10 }
+        ]
+      }
+    ],
+    "Stop": [
+      { "hooks": [{ "type": "command", "command": "/usr/bin/python3 -I \"$HOME/.claude/hooks/activity_log.py\"", "timeout": 5 }] }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          { "type": "command", "command": "/usr/bin/python3 -I \"$HOME/.claude/hooks/activity_log.py\"", "timeout": 5 },
+          { "type": "command", "command": "/bin/bash \"$HOME/.claude/hooks/memory_autocommit.sh\"", "timeout": 30 },
+          { "type": "command", "command": "/usr/bin/python3 -I \"$HOME/.claude/bin/quarantine\" --purge 14 --quiet", "timeout": 30 }
+        ]
+      }
+    ]
+  }
+}
