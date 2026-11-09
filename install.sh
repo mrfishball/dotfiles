@@ -64,6 +64,7 @@ link_dotfiles() {
     link_file "$DOTFILES/claude/hooks" "$HOME/.claude/hooks"
     link_file "$DOTFILES/claude/bin" "$HOME/.claude/bin"
     link_file "$DOTFILES/claude/agents" "$HOME/.claude/agents"
+    link_file "$DOTFILES/claude/references" "$HOME/.claude/references"
     # Skills one by one: ~/.claude/skills also holds org-synced skills
     for path in "$DOTFILES"/claude/skills/*/; do
         link_file "${path%/}" "$HOME/.claude/skills/$(basename "$path")"

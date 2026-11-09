@@ -1,0 +1,240 @@
+#!/usr/bin/python3 -I
+"""Run-folder helper for the /tdd workflow. Run from inside the target repo.
+
+  tdd-run init SLUG                 create ~/.claude/work/<repo>/<SLUG>/ (brief, plan, progress, state)
+  tdd-run brief-check RUN           fail if a brief section is missing or unfilled
+  tdd-run set RUN KEY=VALUE...      update state.json (phase, round, stop_reason, ...)
+  tdd-run record RUN PASSING TOTAL  log test progress; exit 3 if stalled (2 rounds, no gain)
+  tdd-run freeze RUN PATH...        keep copies of test files as the frozen reference
+  tdd-run check-frozen RUN          exit 1 if frozen test files changed
+  tdd-run test-diff RUN             unified diff of frozen tests vs current
+  tdd-run restore-tests RUN         put frozen test files back
+  tdd-run snapshot RUN              save every file changed since base; prints snapshot id
+  tdd-run restore RUN ID            save the current attempt to attempts/, then return to snapshot ID
+  tdd-run purge DAYS [--quiet]      delete runs not touched in DAYS days
+"""
+import argparse
+import difflib
+import json
+import os
+import shutil
+import subprocess
+import sys
+import time
+
+WORK = os.environ.get("CLAUDE_WORK_DIR") or os.path.expanduser("~/.claude/work")
+SECTIONS = [
+    ("Goal", "one or two sentences on the behavior to add or change"),
+    ("Acceptance criteria", "numbered, testable statements"),
+    ("Test boundary", "the public entry points tests may call, e.g. OrderService.place_order() or POST /orders"),
+    ("Scope and non-goals", "what is in, and what must not change"),
+    ("Constraints", "performance, compatibility, dependencies, style"),
+    ("Relevant files", "paths with one-line purpose, including existing tests and fixtures to reuse"),
+    ("Commands", "exact commands: run all tests, run one test file, lint, build"),
+    ("Repo conventions", "repo CLAUDE.md path, test framework, where fixtures live"),
+]
+
+
+def git(root, *args, check=True):
+    r = subprocess.run(["git", "-C", root] + list(args), capture_output=True, text=True)
+    if check and r.returncode != 0:
+        sys.exit(f"git {' '.join(args)} failed: {r.stderr.strip()}")
+    return r.stdout
+
+
+def load(run):
+    with open(os.path.join(run, "state.json")) as f:
+        return json.load(f)
+
+
+def save(run, state):
+    path = os.path.join(run, "state.json")
+    with open(path + ".tmp", "w") as f:
+        json.dump(state, f, indent=2)
+    os.replace(path + ".tmp", path)
+
+
+def changed_files(root, base):
+    tracked = git(root, "diff", "--name-only", base).splitlines()
+    untracked = git(root, "ls-files", "--others", "--exclude-standard").splitlines()
+    return sorted(set(tracked) | set(untracked))
+
+
+def copy_into(root, rel, dest_dir):
+    src = os.path.join(root, rel)
+    if os.path.isfile(src):
+        dst = os.path.join(dest_dir, rel)
+        os.makedirs(os.path.dirname(dst), exist_ok=True)
+        shutil.copy2(src, dst)
+        return True
+    return False
+
+
+def cmd_init(a):
+    root = git(os.getcwd(), "rev-parse", "--show-toplevel").strip()
+    base = git(root, "rev-parse", "HEAD").strip()
+    run = os.path.join(WORK, os.path.basename(root), a.slug)
+    if os.path.exists(run):
+        sys.exit(f"run exists: {run}")
+    os.makedirs(run)
+    with open(os.path.join(run, "brief.md"), "w") as f:
+        f.write(f"# Brief: {a.slug}\n\n" + "".join(f"## {s}\n<fill in: {hint}>\n\n" for s, hint in SECTIONS))
+    for name, title in (("test-plan.md", "Test plan"), ("progress.md", "Progress")):
+        with open(os.path.join(run, name), "w") as f:
+            f.write(f"# {title}: {a.slug}\n\n")
+    save(run, {"repo_root": root, "base": base, "created": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
+               "phase": "brief", "round": 0, "history": [], "frozen": [], "snapshots": 0})
+    print(run)
+
+
+def cmd_brief_check(a):
+    with open(os.path.join(a.run, "brief.md")) as f:
+        text = f.read()
+    problems = [f"missing section: {s}" for s, _ in SECTIONS if f"## {s}\n" not in text]
+    if "<fill in" in text:
+        problems.append("unfilled placeholders remain")
+    if problems:
+        sys.exit("brief incomplete:\n  " + "\n  ".join(problems))
+    print("brief complete")
+
+
+def cmd_set(a):
+    state = load(a.run)
+    for pair in a.pairs:
+        key, _, value = pair.partition("=")
+        state[key] = int(value) if value.isdigit() else value
+    save(a.run, state)
+
+
+def cmd_record(a):
+    state = load(a.run)
+    state["history"].append({"round": state.get("round", 0), "passing": a.passing, "total": a.total,
+                             "ts": time.strftime("%Y-%m-%dT%H:%M:%S%z")})
+    save(a.run, state)
+    last = [h["passing"] for h in state["history"][-3:]]
+    if len(last) == 3 and last[2] <= last[0] and a.passing < a.total:
+        print(f"STALLED: passing went {' -> '.join(map(str, last))} of {a.total} over two rounds")
+        return 3
+    print(f"recorded {a.passing}/{a.total}")
+    return 0
+
+
+def cmd_freeze(a):
+    state = load(a.run)
+    root, frozen_dir = state["repo_root"], os.path.join(a.run, "frozen")
+    shutil.rmtree(frozen_dir, ignore_errors=True)
+    rels = [os.path.relpath(os.path.abspath(p), root) for p in a.paths]
+    missing = [r for r in rels if not copy_into(root, r, frozen_dir)]
+    if missing:
+        sys.exit(f"not files: {', '.join(missing)}")
+    state["frozen"] = rels
+    save(a.run, state)
+    print(f"froze {len(rels)} test file(s)")
+
+
+def read(path):
+    try:
+        with open(path) as f:
+            return f.read()
+    except OSError:
+        return None
+
+
+def cmd_check_frozen(a):
+    state = load(a.run)
+    changed = [r for r in state["frozen"]
+               if read(os.path.join(state["repo_root"], r)) != read(os.path.join(a.run, "frozen", r))]
+    if changed:
+        print("frozen tests changed:\n  " + "\n  ".join(changed))
+        return 1
+    print(f"frozen tests unchanged ({len(state['frozen'])} file(s))")
+    return 0
+
+
+def cmd_test_diff(a):
+    state = load(a.run)
+    for r in state["frozen"]:
+        old = read(os.path.join(a.run, "frozen", r)) or ""
+        new = read(os.path.join(state["repo_root"], r)) or ""
+        sys.stdout.writelines(difflib.unified_diff(old.splitlines(True), new.splitlines(True),
+                                                   f"frozen/{r}", r))
+
+
+def cmd_restore_tests(a):
+    state = load(a.run)
+    for r in state["frozen"]:
+        dst = os.path.join(state["repo_root"], r)
+        os.makedirs(os.path.dirname(dst), exist_ok=True)
+        shutil.copy2(os.path.join(a.run, "frozen", r), dst)
+    print(f"restored {len(state['frozen'])} frozen test file(s)")
+
+
+def cmd_snapshot(a):
+    state = load(a.run)
+    sid = state["snapshots"] + 1
+    snap_dir = os.path.join(a.run, "snapshots", str(sid))
+    os.makedirs(snap_dir, exist_ok=True)
+    files = [r for r in changed_files(state["repo_root"], state["base"])
+             if copy_into(state["repo_root"], r, snap_dir)]
+    with open(os.path.join(snap_dir, "manifest.json"), "w") as f:
+        json.dump(files, f)
+    state["snapshots"] = sid
+    save(a.run, state)
+    print(sid)
+
+
+def cmd_restore(a):
+    state = load(a.run)
+    root, base = state["repo_root"], state["base"]
+    snap_dir = os.path.join(a.run, "snapshots", str(a.id))
+    with open(os.path.join(snap_dir, "manifest.json")) as f:
+        snap = json.load(f)
+    attic = os.path.join(a.run, "attempts", f"{a.id}-{time.strftime('%H%M%S')}")
+    current = changed_files(root, base)
+    for r in current:
+        copy_into(root, r, attic)
+    for r in set(current) - set(snap):
+        path = os.path.join(root, r)
+        if subprocess.run(["git", "-C", root, "cat-file", "-e", f"{base}:{r}"], capture_output=True).returncode == 0:
+            os.makedirs(os.path.dirname(path), exist_ok=True)
+            with open(path, "w") as f:
+                f.write(git(root, "show", f"{base}:{r}"))
+        elif os.path.lexists(path):
+            os.remove(path)  # new since the snapshot; saved in attic above
+    for r in snap:
+        dst = os.path.join(root, r)
+        os.makedirs(os.path.dirname(dst), exist_ok=True)
+        shutil.copy2(os.path.join(snap_dir, r), dst)
+    print(f"restored snapshot {a.id}; failed attempt saved to {attic}")
+
+
+def cmd_purge(a):
+    cutoff, removed = time.time() - a.days * 86400, 0
+    for repo in os.listdir(WORK) if os.path.isdir(WORK) else []:
+        for slug in os.listdir(os.path.join(WORK, repo)):
+            run = os.path.join(WORK, repo, slug)
+            state = os.path.join(run, "state.json")
+            if os.path.isfile(state) and os.path.getmtime(state) < cutoff:
+                shutil.rmtree(run, ignore_errors=True)
+                removed += 1
+    if not a.quiet:
+        print(f"purged {removed} run(s) older than {a.days} days")
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    sub = ap.add_subparsers(dest="cmd", required=True)
+    sub.add_parser("init").add_argument("slug")
+    for name in ("brief-check", "check-frozen", "test-diff", "restore-tests", "snapshot"):
+        sub.add_parser(name).add_argument("run")
+    p = sub.add_parser("set"); p.add_argument("run"); p.add_argument("pairs", nargs="+")
+    p = sub.add_parser("record"); p.add_argument("run"); p.add_argument("passing", type=int); p.add_argument("total", type=int)
+    p = sub.add_parser("freeze"); p.add_argument("run"); p.add_argument("paths", nargs="+")
+    p = sub.add_parser("restore"); p.add_argument("run"); p.add_argument("id", type=int)
+    p = sub.add_parser("purge"); p.add_argument("days", type=int); p.add_argument("--quiet", action="store_true")
+    a = ap.parse_args()
+    return globals()["cmd_" + a.cmd.replace("-", "_")](a) or 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

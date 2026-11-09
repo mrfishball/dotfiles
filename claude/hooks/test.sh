@@ -131,6 +131,44 @@ echo y >> "$CLAUDE_MEMORY_ROOT/memory/f.md"; echo z > "$CLAUDE_MEMORY_ROOT/memor
 check "names dirty folders"    "$(echo '{}' | $PY "$HOOKS/memory_reminder.py")" 'memory (1 file), memory-client (1 file)'
 check "nothing committed"      "$(git -C "$CLAUDE_MEMORY_ROOT/memory" log --oneline | wc -l | tr -d ' ')" '1'
 
+echo "== tdd-run"
+export CLAUDE_WORK_DIR="$SANDBOX/work"
+TR="$PY $BIN/tdd-run"
+TREPO="$SANDBOX/tdd-repo"
+mkdir -p "$TREPO/src" "$TREPO/tests" && cd "$TREPO" && git init -q
+echo base > src/app.txt && echo keep > src/other.txt && echo t0 > tests/test_a.txt && git add -A && git commit -qm base
+RUN="$($TR init demo)"
+check "init prints run"        "$RUN"                                       "$SANDBOX/work/tdd-repo/demo"
+check "brief incomplete"       "$($TR brief-check "$RUN" 2>&1)"             'unfilled placeholders'
+sed -i '' 's/<fill in:[^>]*>/filled/' "$RUN/brief.md"
+check "brief complete"         "$($TR brief-check "$RUN" 2>&1)"             'brief complete'
+echo t1 > tests/test_a.txt
+check "freeze"                 "$($TR freeze "$RUN" tests/test_a.txt)"      'froze 1'
+check "frozen unchanged"       "$($TR check-frozen "$RUN")"                 'unchanged'
+echo weakened > tests/test_a.txt
+check "frozen changed"         "$($TR check-frozen "$RUN"; echo "exit=$?")" 'exit=1'
+check "test-diff shows it"     "$($TR test-diff "$RUN")"                    '+weakened'
+$TR restore-tests "$RUN" >/dev/null
+check "restore-tests"          "$(cat tests/test_a.txt)"                    't1'
+$TR record "$RUN" 2 5 >/dev/null; $TR record "$RUN" 3 5 >/dev/null
+check "progress not stalled"   "$($TR record "$RUN" 4 5; echo "exit=$?")"  'exit=0'
+$TR record "$RUN" 4 5 >/dev/null
+check "stall detected"         "$($TR record "$RUN" 4 5; echo "exit=$?")"  'exit=3'
+check "done is not a stall"    "$($TR record "$RUN" 5 5; echo "exit=$?")"  'exit=0'
+echo built > src/app.txt && echo new > src/new.txt
+SNAP="$($TR snapshot "$RUN")"
+echo refactor-broke-it > src/app.txt && echo stray > src/stray.txt && echo touched > src/other.txt && rm tests/test_a.txt src/new.txt
+check "restore"                "$($TR restore "$RUN" "$SNAP")"              'failed attempt saved'
+check "modified file back"     "$(cat src/app.txt)"                         'built'
+check "new file back"          "$(cat src/new.txt)"                         'new'
+check "deleted test back"      "$(cat tests/test_a.txt)"                    't1'
+check "base file reverted"     "$(cat src/other.txt)"                       'keep'
+check "stray file removed"     "$([ -e src/stray.txt ] && echo present)"   ''
+check "attempt kept"           "$(cat "$RUN"/attempts/*/src/stray.txt)"     'stray'
+touch -t 202001010000 "$RUN/state.json"
+check "purge old runs"         "$($TR purge 30)"                            'purged 1'
+cd "$SANDBOX"
+
 echo "== no silent crashes"
 check "no hook_error logged"   "$(cat "$CLAUDE_LOG_DIR"/activity-*.jsonl | grep -c hook_error)" '0'
 

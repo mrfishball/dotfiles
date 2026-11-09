@@ -38,7 +38,8 @@
       {
         "hooks": [
           { "type": "command", "command": "/usr/bin/python3 -I \"$HOME/.claude/hooks/activity_log.py\"", "timeout": 5 },
-          { "type": "command", "command": "/usr/bin/python3 -I \"$HOME/.claude/bin/quarantine\" --purge 14 --quiet", "timeout": 30 }
+          { "type": "command", "command": "/usr/bin/python3 -I \"$HOME/.claude/bin/quarantine\" --purge 14 --quiet", "timeout": 30 },
+          { "type": "command", "command": "/usr/bin/python3 -I \"$HOME/.claude/bin/tdd-run\" purge 30 --quiet", "timeout": 30 }
         ]
       }
     ]

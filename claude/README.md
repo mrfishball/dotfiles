@@ -11,14 +11,16 @@ claude/
   CLAUDE.md          global instructions (working guidelines, verify-before-stating, mistakes loop)
   settings.json      hook wiring, status line, memory directory
   hooks/             one script per hook, plus shared helpers and tests
-  bin/               command-line tools (quarantine, claude-stats)
+  bin/               command-line tools (quarantine, claude-stats, tdd-run)
   skills/            user-level skills, one folder each
   agents/            user-level subagents
+  references/        shared standards agents read (behavior-testing.md)
+  evals/             known-answer evals for agents
   README.md          this file
 .githooks/pre-commit  repo guard: client-term leak check + hook tests
 ```
 
-`install.sh` links `CLAUDE.md`, `settings.json`, `hooks/`, `bin/` and `agents/` into `~/.claude/`, and each skill folder into `~/.claude/skills/` (that folder also holds org-synced skills, so it isn't linked whole). It links individual entries, not the whole `~/.claude` folder, which also holds sessions and auth. It also sets `core.hooksPath` so the pre-commit guard runs.
+`install.sh` links `CLAUDE.md`, `settings.json`, `hooks/`, `bin/`, `agents/` and `references/` into `~/.claude/`, and each skill folder into `~/.claude/skills/` (that folder also holds org-synced skills, so it isn't linked whole). It links individual entries, not the whole `~/.claude` folder, which also holds sessions and auth. It also sets `core.hooksPath` so the pre-commit guard runs.
 
 **This repo is public.** Everything under `claude/` must stay generic: no client names, services, code, or details. The pre-commit guard enforces this against your client-terms list.
 
@@ -72,6 +74,20 @@ quarantine --purge DAYS             # runs automatically at session end with 14
 
 **`~/.claude/bin/claude-stats [--days N]`**: summary of sessions, tool calls and failures, projects, guard decisions, reminders, and estimated cost. Cost is a list-price estimate, not billed spend.
 
+**`~/.claude/bin/tdd-run`**: the mechanical parts of `/tdd`, so they behave the same every time. Run folders live in `~/.claude/work/<repo>/<task>/`, outside the repo, and are purged after 30 days at session end.
+
+```sh
+tdd-run init SLUG                  # run folder with brief, test plan, progress, state (records base commit)
+tdd-run brief-check RUN            # fails on missing or unfilled brief sections
+tdd-run freeze RUN TEST_FILES...   # frozen copies of the red-phase tests
+tdd-run check-frozen RUN           # exit 1 if frozen tests changed
+tdd-run test-diff RUN              # frozen vs current tests
+tdd-run restore-tests RUN          # put frozen tests back
+tdd-run record RUN PASSING TOTAL   # exit 3 when 2 rounds pass with no gain
+tdd-run snapshot RUN               # save all files changed since base
+tdd-run restore RUN ID             # save the current attempt, then return to the snapshot
+```
+
 ## Kill switches
 
 Set before starting `claude`:
@@ -108,12 +124,49 @@ Invoke with `/<name>` or let Claude pick them up from context.
 | `write-prd` | Drafts a PRD after 3 to 7 clarifying questions. Saves to `tasks/NNNN-prd-<name>.md`. Doesn't implement. |
 | `generate-tasks` | Turns a PRD into parent tasks, then, after you reply "Go", sub-tasks that each end with a verify step. |
 | `process-tasks` | Works through a task list one sub-task at a time, pausing for approval. Runs the test suite after each parent task. |
+| `tdd` | Builds a behavior change test-first with subagents. See [TDD workflow](#tdd-workflow). |
 
 ## Subagents
 
-| Agent | What it does |
+Each agent owns one role, and its tools match the role: judges can't edit, builders can't grade themselves. Agents share context only through files in a run folder, never through paraphrase. Built-in `Explore` and `Plan` cover exploration and planning.
+
+| Agent | Role | Tools | Key rule |
+|---|---|---|---|
+| `verifier` | Fact checker | Read, Grep, Glob, Bash | Confirms, contradicts, or marks unverifiable each claim, with file:line evidence; unsourced rationale is NOT RECORDED. `CLAUDE.md` says when to use it. |
+| `builder` | `/tdd` red and green | Read, Grep, Glob, Edit, Write, Bash | Red: tests that fail for the right reason, plus stubs. Green: simplest passing code. Never edits tests; disputes them instead. |
+| `test-writer` | Independent red phase | Read, Grep, Glob, Edit, Write, Bash | Reads the brief and boundary signatures only, never the implementation. |
+| `refactorer` | Behavior-preserving cleanup | Read, Grep, Glob, Edit, Write, Bash | One side at a time: code pass with tests frozen, then tests pass with code fixed. Snapshots first; restores on red. |
+| `evaluator` | Independent judge | Read, Grep, Glob, Bash | Reads the brief, test plan and diff, never the builder's notes. Strict, evidence for every finding, PASS only with no blocking findings. |
+
+## TDD workflow
+
+`/tdd <task>` (add `--independent-tests` for a separate test author):
+
+```
+brief + baseline run           main session; acceptance criteria, test boundary, exact commands
+  → builder (red)              failing tests that load cleanly, stubs; tests then frozen
+  → builder (green)            simplest code to pass; disputes instead of editing tests
+  → refactorer (code, tests)   one side at a time; restore on red
+  → evaluator                  PASS, or FAIL with findings back to the builder
+```
+
+**Run folder** `~/.claude/work/<repo>/<task>/`: `brief.md`, `test-plan.md`, `progress.md`, `evaluation-N.md`, `state.json`, plus frozen tests, snapshots, and saved attempts. It sits outside the repo, so team repos never pick up stray files and client material is never committed.
+
+**Stops and escalates to you** when the red gate fails twice, a second dispute arises, two rounds pass with no new tests passing, three rounds pass without a PASS, or an agent is blocked.
+
+**Testing standard**: [`references/behavior-testing.md`](references/behavior-testing.md). Test behavior through the public boundary so tests survive refactoring, mock only at the edges, extract fixtures once setup repeats 3 times, keep values that drive the outcome visible, and write tests that read like a manual.
+
+## Evals
+
+Agents get known-answer evals in [`evals/`](evals/README.md), run 3 times each; anything the workflow relies on must pass all 3 runs (pass^3). Run the relevant eval after changing an agent, the testing standard, or `/tdd`.
+
+| Eval | Measures |
 |---|---|
-| `verifier` | Read-only fact checker. Takes a numbered list of claims about current code or config and returns each as confirmed, contradicted, or unverifiable, with file:line evidence. Marks unsourced rationale as NOT RECORDED. `CLAUDE.md` tells Claude to use it when an answer rests on several claims from memory, docs, or names. |
+| Refactor survival | Tests pass on original and refactored code and fail on two subtly buggy versions. `grade.sh` is deterministic. |
+| Newcomer readability | A fresh agent reading only the tests recovers every acceptance criterion. |
+| Verifier | Known claims about this repo, true and false, plus one unsourced rationale. |
+| Refactorer | Tests stay green and frozen in the code pass; test count and grading survive the tests pass. |
+| Evaluator | Seeded defects are caught as blocking findings at the right file:line. |
 
 ## Pre-commit guard
 
@@ -132,7 +185,8 @@ Invoke with `/<name>` or let Claude pick them up from context.
 
 ## Planned
 
-- More subagent workflows
+- Run the agent evals 3 times each and record a baseline
+- Mutation check in the evaluator (break one behavior, confirm a test fails)
 - Context and model tuning once `claude-stats` has a week of data
 - MCP and tool-list audit (`/context` in a typical session)
 - Per-repo format/typecheck Stop hooks, prompted by the lint reminder
