@@ -10,14 +10,28 @@ Read this before writing, tidying, or reviewing tests. It applies in any languag
 - Assert on observable outcomes: return values, errors raised, state readable back through the public API, persisted records, emitted messages or responses.
 - Never assert on internal call order, private fields, or intermediate variables.
 - Assert only what the requirement cares about. Check the fields that matter; don't snapshot whole objects.
-- Prefer the highest level that is still fast and deterministic: behavior tests at the module or service boundary with in-memory dependencies survive refactoring best. Keep fine-grained unit tests for pure logic with many cases.
+- Prefer the highest level that is still fast and deterministic: behavior tests at the module or service boundary, running through the real code beneath it, survive refactoring best. Keep fine-grained unit tests for pure logic with many cases.
 
-## 2. Mock only at the edges
+## 2. Real code inside the codebase; doubles only at the edge
 
-- Replace what you don't own, or what is slow or nondeterministic: network, external services, clock, randomness, sometimes the filesystem.
-- Prefer in-memory fakes over mocks.
-- Never mock collaborators inside the code under test.
-- Assert on a mock call only when that call is the behavior (for example, "sends exactly one notification").
+Inside the codebase, exercise the real code path and assert on the final outcome. A mock or fake of your own code encodes an assumption about how it behaves; when the real code drifts, the double doesn't, and the tests stay green while the system breaks.
+
+- **Never mock or fake code in this codebase**, including other components, modules, or services built in the same repo. Call through them.
+- **Use a test double only for what you don't control:**
+  - network calls to services outside this codebase (third-party APIs, other teams' services)
+  - third-party SDKs or code paths that need setup you can't reasonably reproduce (payments, email delivery, cloud provider APIs)
+  - nondeterminism: inject and control the clock and random sources rather than mocking internals
+- **Databases are real.** Run tests against the same engine and version as production (a local instance or a container), with the real schema and migrations. Queries, indexes, constraints, transactions, and isolation behavior can't be reasonably tested with mocks, and an in-memory substitute from a different engine has different semantics.
+- **The filesystem is real:** use a temporary directory, not a mock.
+- When a double is justified, prefer a small fake with real behavior over a mock with scripted returns, and assert on a call only when that call is the behavior (for example, "sends exactly one notification to the payment provider").
+
+## 2a. Integration and seam tests
+
+Seam tests check that components built separately work together.
+
+- Exercise the real path across the seam: call the upstream entry point, let it run through the real downstream component (and the real database), and assert on the final outcome a user or caller would observe.
+- Don't assert on what crossed the seam (arguments passed, calls made); assert on the result.
+- Doubles appear only at the external edges listed above, never between components of this codebase.
 
 ## 3. Derive cases from the spec
 
@@ -61,7 +75,9 @@ Read this before writing, tidying, or reviewing tests. It applies in any languag
 Reviewers flag, with file:line:
 
 - calls past the test boundary, private imports, or assertions on internals
-- mocks of internal collaborators, or call-count assertions that aren't the behavior
+- mocks or fakes of code in this codebase, or call-count assertions that aren't the behavior
+- database behavior tested with mocks or a different engine instead of the real one
+- seam tests that stub the other side of the seam, or assert on what crossed it instead of the outcome
 - whole-object snapshots where specific fields would do
 - setup repeated 3+ times and not extracted, or existing fixtures ignored
 - mystery guests (assertions relying on values hidden in fixtures)

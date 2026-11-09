@@ -159,7 +159,7 @@ The brief is the per-task contract. For larger work, design and planning happen 
 
 **Stops and escalates to you** when the red gate fails twice, a second dispute arises, two rounds pass with no new tests passing, three rounds pass without a PASS, or an agent is blocked.
 
-**Testing standard**: [`references/behavior-testing.md`](references/behavior-testing.md). Test behavior through the public boundary so tests survive refactoring, mock only at the edges, extract fixtures once setup repeats 3 times, keep values that drive the outcome visible, and write tests that read like a manual.
+**Testing standard**: [`references/behavior-testing.md`](references/behavior-testing.md). Test behavior through the public boundary so tests survive refactoring, exercise real code inside the codebase (including a real database engine) and use doubles only for network calls and code you don't control, extract fixtures once setup repeats 3 times, keep values that drive the outcome visible, and write tests that read like a manual.
 
 ## Evals
 
