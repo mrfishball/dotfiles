@@ -1,0 +1,29 @@
+#!/bin/bash
+# Dotfiles pre-commit. This repo is public, so:
+#   1. block staged additions that contain a term from ~/.claude/private/client-terms.txt
+#   2. run the Claude hook tests when hooks, tools, or settings change
+# Bypass only deliberately: git commit --no-verify
+
+TERMS="$HOME/.claude/private/client-terms.txt"
+if [ -s "$TERMS" ]; then
+    patterns=$(grep -v '^[[:space:]]*#' "$TERMS" | grep -v '^[[:space:]]*$')
+    if [ -n "$patterns" ]; then
+        hits=$(git diff --cached -U0 --no-color | grep '^+[^+]' | grep -oiwF -f <(printf '%s\n' "$patterns") | sort -fu)
+        if [ -n "$hits" ]; then
+            echo "pre-commit: staged changes contain client terms (this repo is public): $(echo $hits)" >&2
+            exit 1
+        fi
+    fi
+fi
+
+if git diff --cached --name-only | grep -qE '^claude/(hooks/|bin/|settings\.json)'; then
+    out=$(claude/hooks/test.sh 2>&1)
+    if [ $? -ne 0 ]; then
+        echo "$out" | grep -A3 '^FAIL' >&2
+        echo "$out" | tail -1 >&2
+        echo "pre-commit: Claude hook tests failed; commit blocked." >&2
+        exit 1
+    fi
+    echo "pre-commit: $(echo "$out" | tail -1)"
+fi
+exit 0

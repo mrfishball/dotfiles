@@ -8,14 +8,19 @@ My user-level Claude Code setup: instructions, hooks, status line, and helper to
 
 ```
 claude/
-  CLAUDE.md          global instructions (working guidelines, mistakes loop)
+  CLAUDE.md          global instructions (working guidelines, verify-before-stating, mistakes loop)
   settings.json      hook wiring, status line, memory directory
   hooks/             one script per hook, plus shared helpers and tests
   bin/               command-line tools (quarantine, claude-stats)
+  skills/            user-level skills, one folder each
+  agents/            user-level subagents
   README.md          this file
+.githooks/pre-commit  repo guard: client-term leak check + hook tests
 ```
 
-`install.sh` links `CLAUDE.md`, `settings.json`, `hooks/` and `bin/` into `~/.claude/`. It links individual entries, not the whole `~/.claude` folder, which also holds sessions and auth.
+`install.sh` links `CLAUDE.md`, `settings.json`, `hooks/`, `bin/` and `agents/` into `~/.claude/`, and each skill folder into `~/.claude/skills/` (that folder also holds org-synced skills, so it isn't linked whole). It links individual entries, not the whole `~/.claude` folder, which also holds sessions and auth. It also sets `core.hooksPath` so the pre-commit guard runs.
+
+**This repo is public.** Everything under `claude/` must stay generic: no client names, services, code, or details. The pre-commit guard enforces this against your client-terms list.
 
 Local-only files, never committed:
 
@@ -93,6 +98,30 @@ gate() { /usr/bin/python3 -I -c 'import json,sys,os; print(json.dumps({"session_
 gate 'git push --force origin main'   # empty output means allowed
 ```
 
+## Skills
+
+Invoke with `/<name>` or let Claude pick them up from context.
+
+| Skill | What it does |
+|---|---|
+| `commit` | Commits current changes with a Conventional Commits message, matching the repo's existing convention. Never pushes or skips hooks unless asked. |
+| `write-prd` | Drafts a PRD after 3 to 7 clarifying questions. Saves to `tasks/NNNN-prd-<name>.md`. Doesn't implement. |
+| `generate-tasks` | Turns a PRD into parent tasks, then, after you reply "Go", sub-tasks that each end with a verify step. |
+| `process-tasks` | Works through a task list one sub-task at a time, pausing for approval. Runs the test suite after each parent task. |
+
+## Subagents
+
+| Agent | What it does |
+|---|---|
+| `verifier` | Read-only fact checker. Takes a numbered list of claims about current code or config and returns each as confirmed, contradicted, or unverifiable, with file:line evidence. Marks unsourced rationale as NOT RECORDED. `CLAUDE.md` tells Claude to use it when an answer rests on several claims from memory, docs, or names. |
+
+## Pre-commit guard
+
+`.githooks/pre-commit` runs on every dotfiles commit:
+
+1. Blocks staged additions that contain any term in `~/.claude/private/client-terms.txt`.
+2. Runs `claude/hooks/test.sh` when `hooks/`, `bin/`, or `settings.json` change, and blocks the commit if a test fails. Hooks fail open at runtime, so this is what stops a broken hook from shipping.
+
 ## Adding a hook
 
 1. One script per hook in `hooks/`, run with `/usr/bin/python3 -I`. The system Python avoids per-repo version managers (asdf, mise), and `-I` keeps a repo's files from being imported.
@@ -103,6 +132,8 @@ gate 'git push --force origin main'   # empty output means allowed
 
 ## Planned
 
-- Subagent workflows (for example, a verifier that checks claims against live code before answering)
+- More subagent workflows
+- Context and model tuning once `claude-stats` has a week of data
+- MCP and tool-list audit (`/context` in a typical session)
 - Per-repo format/typecheck Stop hooks, prompted by the lint reminder
 - Config protection for lint and CI configs in team repos

@@ -53,7 +53,7 @@ link_dotfiles() {
     for path in "$DOTFILES"/.[!.]*; do
         name="$(basename "$path")"
         case "$name" in
-            .git|.gitignore|.DS_Store) continue ;;
+            .git|.gitignore|.githooks|.DS_Store) continue ;;
         esac
         link_file "$path" "$HOME/$name"
     done
@@ -63,6 +63,12 @@ link_dotfiles() {
     link_file "$DOTFILES/claude/settings.json" "$HOME/.claude/settings.json"
     link_file "$DOTFILES/claude/hooks" "$HOME/.claude/hooks"
     link_file "$DOTFILES/claude/bin" "$HOME/.claude/bin"
+    link_file "$DOTFILES/claude/agents" "$HOME/.claude/agents"
+    # Skills one by one: ~/.claude/skills also holds org-synced skills
+    for path in "$DOTFILES"/claude/skills/*/; do
+        link_file "${path%/}" "$HOME/.claude/skills/$(basename "$path")"
+    done
+    git -C "$DOTFILES" config core.hooksPath .githooks
 
     # Local-only Claude files, never committed
     mkdir -p "$HOME/.claude/private"

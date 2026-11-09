@@ -27,6 +27,8 @@ Adapted from [andrej-karpathy-skills](https://github.com/multica-ai/andrej-karpa
 - Turn tasks into checkable goals: "fix the bug" becomes "write a failing test that reproduces it, then make it pass." "Refactor X" means tests pass before and after.
 - For multi-step work, state a short plan with a check per step: `1. [step] → verify: [check]`.
 
+**Verify before stating.** When an answer rests on several claims about current code, config, or repo state taken from memory, docs, or names, check them with the `verifier` subagent before answering. Check a single fact directly instead.
+
 ## Learning from mistakes
 
 Keep a running mistakes log at `~/.claude/memory/mistakes_log.md`, whichever project you are in. Client work logs its full entry in that client's memory folder (named in the client folder's `CLAUDE.md`) and only the category count globally.
