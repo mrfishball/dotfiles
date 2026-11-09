@@ -120,17 +120,16 @@ check "statusline"             "$(echo "$SL" | $PY "$HOOKS/statusline.py")" 'ctx
 check "snapshot written"       "$(cat "$CLAUDE_LOG_DIR/sessions/s1.json")"  '"cost_usd": 1.5'
 check "stats"                  "$($PY "$BIN/claude-stats")"                 'Bash 1'
 
-echo "== memory_autocommit"
+echo "== memory_reminder"
+rm -rf "$CLAUDE_MEMORY_ROOT/memory"
 for m in memory memory-client; do
     mkdir -p "$CLAUDE_MEMORY_ROOT/$m" && git -C "$CLAUDE_MEMORY_ROOT/$m" init -q
     echo x > "$CLAUDE_MEMORY_ROOT/$m/f.md" && git -C "$CLAUDE_MEMORY_ROOT/$m" add -A && git -C "$CLAUDE_MEMORY_ROOT/$m" commit -qm init
 done
-echo '{}' | bash "$HOOKS/memory_autocommit.sh"
-check "clean = no commit"      "$(git -C "$CLAUDE_MEMORY_ROOT/memory" log --oneline | wc -l | tr -d ' ')" '1'
-echo y >> "$CLAUDE_MEMORY_ROOT/memory/f.md"; echo y >> "$CLAUDE_MEMORY_ROOT/memory-client/f.md"
-echo '{}' | bash "$HOOKS/memory_autocommit.sh"
-check "global committed"       "$(git -C "$CLAUDE_MEMORY_ROOT/memory" log -1 --format=%s)" 'Auto: session end'
-check "client committed"       "$(git -C "$CLAUDE_MEMORY_ROOT/memory-client" log -1 --format=%s)" 'Auto: session end'
+check "all clean, quiet"       "$(echo '{}' | $PY "$HOOKS/memory_reminder.py")" ''
+echo y >> "$CLAUDE_MEMORY_ROOT/memory/f.md"; echo z > "$CLAUDE_MEMORY_ROOT/memory-client/new.md"
+check "names dirty folders"    "$(echo '{}' | $PY "$HOOKS/memory_reminder.py")" 'memory (1 file), memory-client (1 file)'
+check "nothing committed"      "$(git -C "$CLAUDE_MEMORY_ROOT/memory" log --oneline | wc -l | tr -d ' ')" '1'
 
 echo "== no silent crashes"
 check "no hook_error logged"   "$(cat "$CLAUDE_LOG_DIR"/activity-*.jsonl | grep -c hook_error)" '0'

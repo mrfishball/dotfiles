@@ -57,7 +57,6 @@ def main():
     proj_calls = Counter(e.get("project") for e in tools)
     guards = Counter(f"{e.get('hook')} {e.get('decision')}" for e in events if e["event"] == "guard")
     reminders = Counter(e.get("hook") for e in events if e["event"] == "reminder")
-    backups = Counter(f"{e.get('repo')} {e.get('result')}" for e in events if e["event"] == "memory_autocommit")
     errors = Counter(e.get("hook") for e in events if e["event"] == "hook_error")
     cost = defaultdict(float)
     for s in snaps:
@@ -71,7 +70,6 @@ def main():
     print(f"Projects:    {top(proj_sessions, fmt=lambda k, v: f'{k} {v} sessions/{proj_calls[k]} calls')}")
     print(f"Guards:      {top(guards, 20)}")
     print(f"Reminders:   {top(reminders)}")
-    print(f"Memory:      {top(backups)}")
     print(f"Est. cost:   ${sum(cost.values()):.2f} list price"
           + (f"  ({', '.join(f'{p} ${c:.2f}' for p, c in sorted(cost.items(), key=lambda x: -x[1])[:6])})" if cost else ""))
     if errors:
