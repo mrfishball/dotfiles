@@ -23,8 +23,9 @@ Run the test command from the brief yourself. Bash is for read-only commands and
 2. **Testing standard:** apply the review checklist in behavior-testing.md to every test file in the diff.
 3. **Test integrity:** in the test diff, any removed test or assertion that now checks less is blocking.
 4. **Scope:** every code change traces to the brief. Non-goals are untouched.
-5. **Code quality:** swallowed errors, silent fallbacks, unnecessary complexity, inconsistency with repo conventions.
-6. **Tests pass:** the full suite is green, apart from failures the brief's baseline recorded.
+5. **Approach:** when the brief has one, the implementation follows its components, interfaces, and data flow. An unexplained deviation is blocking.
+6. **Code quality:** swallowed errors, silent fallbacks, unnecessary complexity, inconsistency with repo conventions.
+7. **Tests pass:** the full suite is green, apart from failures the brief's baseline recorded.
 
 ## Output
 

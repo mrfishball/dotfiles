@@ -144,6 +144,7 @@ Each agent owns one role, and its tools match the role: judges can't edit, build
 
 ```
 brief + baseline run           main session; acceptance criteria, test boundary, exact commands
+  → approach (when needed)     Plan agent drafts, you confirm; otherwise "Not needed: <reason>"
   → builder (red)              failing tests that load cleanly, stubs; tests then frozen
   → builder (green)            simplest code to pass; disputes instead of editing tests
   → refactorer (code, tests)   one side at a time; restore on red
@@ -151,6 +152,10 @@ brief + baseline run           main session; acceptance criteria, test boundary,
 ```
 
 **Run folder** `~/.claude/work/<repo>/<task>/`: `brief.md`, `test-plan.md`, `progress.md`, `evaluation-N.md`, `state.json`, plus frozen tests, snapshots, and saved attempts. It sits outside the repo, so team repos never pick up stray files and client material is never committed.
+
+**Approach** is a required decision in every brief: either a design or `Not needed: <reason>`. A design is needed for a new module or service, a new data model or schema change, a new integration or dependency, a change to an existing public interface, a cross-cutting change, or a choice between approaches with real trade-offs. The `Plan` agent drafts it (components, interfaces, data flow, alternatives rejected, risks), and `tdd-run brief-check` fails until you confirm it. The builder works within it, the refactorer won't restructure against it, and the evaluator treats an unexplained deviation as blocking. If the approach turns out to be unworkable, the builder raises an `APPROACH DISPUTE`, which always comes to you.
+
+The brief is the per-task contract. For larger work, design and planning happen earlier: `/write-prd` for requirements, `/generate-tasks` for the plan, then `/tdd` per sub-task, with its brief distilled from the PRD and the task.
 
 **Stops and escalates to you** when the red gate fails twice, a second dispute arises, two rounds pass with no new tests passing, three rounds pass without a PASS, or an agent is blocked.
 

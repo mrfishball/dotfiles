@@ -23,8 +23,28 @@ Use this for behavior changes with outcomes a test can observe. For trivial edit
 Fill every section of `RUN/brief.md`.
 - **Acceptance criteria:** numbered and testable. If they're vague or missing, ask the user before going on. A thin brief is the main reason agents guess.
 - **Test boundary:** the concrete public entry points tests may call.
+- **Approach:** decide whether the task needs a design before coding (see below). If not, write `Not needed: <reason>`.
 
-Then run `TR brief-check RUN` and fix anything it reports.
+### Approach, when needed
+
+A design is needed when any of these hold:
+- a new module, package, or service
+- a new data model or schema change
+- a new external integration or dependency
+- a change to an existing public interface, beyond adding to it
+- a change that cuts across several components
+- more than one plausible approach with real trade-offs
+
+Otherwise, for example a change with one obvious shape inside existing structure, skip it.
+
+When it's needed:
+
+1. Run the `Plan` agent with RUN/brief.md. Ask for a concise approach: components and responsibilities, interfaces and signatures, data flow, alternatives considered and why each was rejected, and risks.
+2. Write it into the brief's Approach section. Keep it to what the builder needs: decisions, not essays.
+3. Show the user the approach and wait for confirmation or changes. Don't continue without it.
+4. Once they confirm: `TR set RUN approach=confirmed`.
+
+Then run `TR brief-check RUN` and fix anything it reports. It fails while a written approach is unconfirmed.
 
 ## 3. Baseline
 
@@ -48,6 +68,7 @@ Run the `builder` agent in mode `green`, naming the latest `evaluation-N.md` fro
 1. **Disputes:** if progress.md has a new `DISPUTE`, judge it against the brief yourself.
    - If valid, fix the test, re-freeze, and continue.
    - A second dispute in the run, or one that needs a product decision, goes to the user.
+   - An `APPROACH DISPUTE` always goes to the user, because they confirmed the approach. If they accept a change, update the brief's Approach and set `approach=confirmed` again.
 2. **Frozen tests:** run `TR check-frozen RUN`. If tests changed without an accepted dispute, run `TR restore-tests RUN` and send the builder back.
 3. **Progress:** `TR record RUN <passing> <total>`. If it exits 3 (stalled), stop and escalate.
 

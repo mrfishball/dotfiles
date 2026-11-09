@@ -2,7 +2,7 @@
 """Run-folder helper for the /tdd workflow. Run from inside the target repo.
 
   tdd-run init SLUG                 create ~/.claude/work/<repo>/<SLUG>/ (brief, plan, progress, state)
-  tdd-run brief-check RUN           fail if a brief section is missing or unfilled
+  tdd-run brief-check RUN           fail if a brief section is missing or unfilled, or an approach is unconfirmed
   tdd-run set RUN KEY=VALUE...      update state.json (phase, round, stop_reason, ...)
   tdd-run record RUN PASSING TOTAL  log test progress; exit 3 if stalled (2 rounds, no gain)
   tdd-run freeze RUN PATH...        keep copies of test files as the frozen reference
@@ -32,7 +32,18 @@ SECTIONS = [
     ("Relevant files", "paths with one-line purpose, including existing tests and fixtures to reuse"),
     ("Commands", "exact commands: run all tests, run one test file, lint, build"),
     ("Repo conventions", "repo CLAUDE.md path, test framework, where fixtures live"),
+    ("Approach", "components, interfaces, data flow, alternatives rejected and why, risks; "
+                 "or 'Not needed: <reason>' for a change with one obvious shape"),
 ]
+
+
+def section(text, name):
+    start = text.find(f"## {name}\n")
+    if start < 0:
+        return None
+    body = text[start + len(name) + 4:]
+    end = body.find("\n## ")
+    return (body if end < 0 else body[:end]).strip()
 
 
 def git(root, *args, check=True):
@@ -90,9 +101,13 @@ def cmd_init(a):
 def cmd_brief_check(a):
     with open(os.path.join(a.run, "brief.md")) as f:
         text = f.read()
-    problems = [f"missing section: {s}" for s, _ in SECTIONS if f"## {s}\n" not in text]
+    problems = [f"missing section: {s}" for s, _ in SECTIONS if section(text, s) is None]
     if "<fill in" in text:
         problems.append("unfilled placeholders remain")
+    approach = section(text, "Approach") or ""
+    if approach and not approach.startswith("Not needed") and "<fill in" not in approach \
+            and load(a.run).get("approach") != "confirmed":
+        problems.append("approach not confirmed by the user (then: tdd-run set RUN approach=confirmed)")
     if problems:
         sys.exit("brief incomplete:\n  " + "\n  ".join(problems))
     print("brief complete")

@@ -141,7 +141,12 @@ RUN="$($TR init demo)"
 check "init prints run"        "$RUN"                                       "$SANDBOX/work/tdd-repo/demo"
 check "brief incomplete"       "$($TR brief-check "$RUN" 2>&1)"             'unfilled placeholders'
 sed -i '' 's/<fill in:[^>]*>/filled/' "$RUN/brief.md"
-check "brief complete"         "$($TR brief-check "$RUN" 2>&1)"             'brief complete'
+check "approach unconfirmed"   "$($TR brief-check "$RUN" 2>&1)"             'approach not confirmed'
+$TR set "$RUN" approach=confirmed
+check "approach confirmed"     "$($TR brief-check "$RUN" 2>&1)"             'brief complete'
+$TR set "$RUN" approach=pending
+/usr/bin/python3 -I -c 'import sys; p=sys.argv[1]; t=open(p).read(); i=t.index("## Approach\n"); open(p,"w").write(t[:i]+"## Approach\nNot needed: one obvious shape\n")' "$RUN/brief.md"
+check "approach not needed"    "$($TR brief-check "$RUN" 2>&1)"             'brief complete'
 echo t1 > tests/test_a.txt
 check "freeze"                 "$($TR freeze "$RUN" tests/test_a.txt)"      'froze 1'
 check "frozen unchanged"       "$($TR check-frozen "$RUN")"                 'unchanged'

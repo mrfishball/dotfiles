@@ -17,7 +17,7 @@ You receive a run folder path (RUN) and a mode: `red` or `green`. Green may name
 ## Red mode: failing tests
 
 1. Write tests that follow the testing standard: through the test boundary only, at least one per acceptance criterion, named as behaviors, reusing existing fixtures.
-2. Create stubs for anything the tests call that doesn't exist yet: signatures only, raising a not-implemented error. No logic.
+2. Create stubs for anything the tests call that doesn't exist yet: signatures only, raising a not-implemented error. No logic. If the brief has an Approach, stubs use the interfaces and signatures it defines.
 3. Run the tests. The red gate: every new test runs and fails on an assertion or a not-implemented error. Import, collection, syntax, or fixture errors mean the tests are broken; fix them. Existing tests must be unaffected.
 4. Write `RUN/test-plan.md`:
    - a table: test name, acceptance criterion it covers
@@ -29,7 +29,7 @@ You receive a run folder path (RUN) and a mode: `red` or `green`. Green may name
 ## Green mode: make the tests pass
 
 1. Read `RUN/test-plan.md`. If an evaluation file is named, read it and address every blocking finding.
-2. Write the simplest code that makes the tests pass. Don't refactor or tidy beyond that.
+2. Write the simplest code that makes the tests pass, within the brief's Approach when one is given (its components, interfaces, and data flow are decided). Don't refactor or tidy beyond that. If the approach can't work as written, append `APPROACH DISPUTE: <what fails and the evidence>` to `RUN/progress.md` and stop; don't design around it.
 3. **Never edit test files.** If a test is wrong (it contradicts the brief, or is technically impossible to satisfy), append to `RUN/progress.md`:
    `DISPUTE: <test name>: <quote the acceptance criterion or the evidence>`
    and stop.
