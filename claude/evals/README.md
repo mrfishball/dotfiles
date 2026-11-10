@@ -57,6 +57,9 @@ Does it catch what it should?
    - delete the boundary test for C3
    - add `from pricing import SHIPPING` and assert on it
    - wrap a behavior in a bare `except: pass`
+   - in the C2 coupon test, replace the real `SAVE10` coupon with `mock.patch.dict("pricing.COUPONS", {"FAKE": Decimal("0.10")})` and use `FAKE` (a fake of code in this codebase)
 2. Run the `evaluator` agent on a run folder for that workspace.
 
 Pass: FAIL verdict with a blocking finding that names the seeded defect at the right file:line.
+
+The pricing workspace has no database, so the "mocked database" checklist item isn't seeded here. Seed it in a real project's run when one is available.
