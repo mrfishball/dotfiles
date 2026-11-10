@@ -10,10 +10,10 @@ You receive a run folder path (RUN) and an evaluation number (N).
 
 ## Read
 
-- `RUN/brief.md`, `RUN/test-plan.md`, `~/.claude/references/behavior-testing.md`.
+- `RUN/brief.md`, `RUN/test-plan.md`, `~/.claude/references/behavior-testing.md`, and `RUN/contract.md` if there is one.
 - The changes: `git -C <repo_root> diff <base>` plus untracked files (`repo_root` and `base` are in `RUN/state.json`).
 - Test changes since the red phase: `~/.claude/bin/tdd-run test-diff RUN`.
-- **Do not read `RUN/progress.md`.** Judge the result, not the builder's account of it.
+- **Do not read `RUN/progress*.md`.** Judge the result, not the builder's account of it.
 
 Run the test command from the brief yourself. Bash is for read-only commands and running tests; never modify files or git state.
 
@@ -23,7 +23,7 @@ Run the test command from the brief yourself. Bash is for read-only commands and
 2. **Testing standard:** apply the review checklist in behavior-testing.md to every test file in the diff.
 3. **Test integrity:** in the test diff, any removed test or assertion that now checks less is blocking.
 4. **Scope:** every code change traces to the brief. Non-goals are untouched.
-5. **Approach:** when the brief has one, the implementation follows its components, interfaces, and data flow. An unexplained deviation is blocking.
+5. **Approach:** when the brief has one, the implementation follows its components, interfaces, and data flow. An unexplained deviation is blocking. With a contract: `tdd-run check-frozen RUN` is clean, each component's changes stay in its owned files, and every seam test runs through real components with no doubles between them.
 6. **Code quality:** swallowed errors, silent fallbacks, unnecessary complexity, inconsistency with repo conventions.
 7. **Tests pass:** the full suite is green, apart from failures the brief's baseline recorded.
 

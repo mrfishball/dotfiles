@@ -11,10 +11,15 @@
   tdd-run restore-tests RUN         put frozen test files back
   tdd-run snapshot RUN              save every file changed since base; prints snapshot id
   tdd-run restore RUN ID            save the current attempt to attempts/, then return to snapshot ID
+  tdd-run wt-add RUN NAME OWNED...  worktree for one component, from the current working tree; prints its path
+  tdd-run wt-collect RUN NAME       apply the worktree's changes to the main tree (exit 4: outside OWNED,
+                                    exit 5: conflicts), then remove it
+  tdd-run wt-drop RUN NAME          save the worktree's changes to attempts/, then remove it
   tdd-run purge DAYS [--quiet]      delete runs not touched in DAYS days
 """
 import argparse
 import difflib
+import fnmatch
 import json
 import os
 import shutil
@@ -223,6 +228,83 @@ def cmd_restore(a):
     print(f"restored snapshot {a.id}; failed attempt saved to {attic}")
 
 
+def owns(owned, path):
+    return any(path == o or (o.endswith("/") and path.startswith(o)) or fnmatch.fnmatch(path, o) for o in owned)
+
+
+def wt_patch(w):
+    git(w["path"], "add", "-A")
+    return git(w["path"], "diff", "--cached", "--binary", w["start"])
+
+
+def wt_remove(root, w):
+    git(root, "worktree", "remove", "--force", w["path"], check=False)
+    git(root, "branch", "-D", w["branch"], check=False)
+
+
+def cmd_wt_add(a):
+    state = load(a.run)
+    root, worktrees = state["repo_root"], state.setdefault("worktrees", {})
+    if a.name in worktrees:
+        sys.exit(f"worktree exists: {a.name}")
+    # Commit the main tree as it is, uncommitted contract included, without touching its HEAD or index.
+    env = dict(os.environ, GIT_INDEX_FILE=os.path.join(a.run, "wt-index"))
+    for args in (["read-tree", "HEAD"], ["add", "-A"]):
+        subprocess.run(["git", "-C", root] + args, env=env, check=True, capture_output=True)
+    tree = subprocess.run(["git", "-C", root, "write-tree"], env=env, check=True,
+                          capture_output=True, text=True).stdout.strip()
+    os.remove(env["GIT_INDEX_FILE"])
+    start = git(root, "commit-tree", tree, "-p", "HEAD", "-m", f"tdd start: {a.name}").strip()
+    path = os.path.join(a.run, "wt", a.name)
+    branch = f"tdd/{os.path.basename(a.run)}/{a.name}"
+    git(root, "worktree", "add", "-q", "-b", branch, path, start)
+    worktrees[a.name] = {"path": path, "branch": branch, "start": start, "owned": a.owned}
+    save(a.run, state)
+    print(path)
+
+
+def cmd_wt_collect(a):
+    state = load(a.run)
+    root, w = state["repo_root"], state.get("worktrees", {}).get(a.name)
+    if not w:
+        sys.exit(f"no worktree: {a.name}")
+    patch = wt_patch(w)
+    changed = git(w["path"], "diff", "--cached", "--name-only", w["start"]).splitlines()
+    outside = [c for c in changed if not owns(w["owned"], c)]
+    if outside:
+        print(f"{a.name} changed files it doesn't own:\n  " + "\n  ".join(outside))
+        return 4
+    if patch:
+        patch_path = os.path.join(a.run, "patches", f"{a.name}.patch")
+        os.makedirs(os.path.dirname(patch_path), exist_ok=True)
+        with open(patch_path, "w") as f:
+            f.write(patch)
+        check = subprocess.run(["git", "-C", root, "apply", "--check", patch_path], capture_output=True, text=True)
+        if check.returncode != 0:
+            print(f"{a.name} conflicts with the main tree:\n{check.stderr.strip()}")
+            return 5
+        git(root, "apply", patch_path)
+    wt_remove(root, w)
+    del state["worktrees"][a.name]
+    save(a.run, state)
+    print(f"collected {a.name}: {len(changed)} file(s)")
+    return 0
+
+
+def cmd_wt_drop(a):
+    state = load(a.run)
+    w = state.get("worktrees", {}).pop(a.name, None)
+    if not w:
+        sys.exit(f"no worktree: {a.name}")
+    attic = os.path.join(a.run, "attempts", f"wt-{a.name}-{time.strftime('%H%M%S')}.patch")
+    os.makedirs(os.path.dirname(attic), exist_ok=True)
+    with open(attic, "w") as f:
+        f.write(wt_patch(w))
+    wt_remove(state["repo_root"], w)
+    save(a.run, state)
+    print(f"dropped {a.name}; changes saved to {attic}")
+
+
 def cmd_purge(a):
     cutoff, removed = time.time() - a.days * 86400, 0
     for repo in os.listdir(WORK) if os.path.isdir(WORK) else []:
@@ -230,6 +312,9 @@ def cmd_purge(a):
             run = os.path.join(WORK, repo, slug)
             state = os.path.join(run, "state.json")
             if os.path.isfile(state) and os.path.getmtime(state) < cutoff:
+                s = load(run)
+                for w in s.get("worktrees", {}).values():
+                    wt_remove(s["repo_root"], w)
                 shutil.rmtree(run, ignore_errors=True)
                 removed += 1
     if not a.quiet:
@@ -246,6 +331,9 @@ def main():
     p = sub.add_parser("record"); p.add_argument("run"); p.add_argument("passing", type=int); p.add_argument("total", type=int)
     p = sub.add_parser("freeze"); p.add_argument("run"); p.add_argument("paths", nargs="+")
     p = sub.add_parser("restore"); p.add_argument("run"); p.add_argument("id", type=int)
+    p = sub.add_parser("wt-add"); p.add_argument("run"); p.add_argument("name"); p.add_argument("owned", nargs="+")
+    for name in ("wt-collect", "wt-drop"):
+        p = sub.add_parser(name); p.add_argument("run"); p.add_argument("name")
     p = sub.add_parser("purge"); p.add_argument("days", type=int); p.add_argument("--quiet", action="store_true")
     a = ap.parse_args()
     return globals()["cmd_" + a.cmd.replace("-", "_")](a) or 0

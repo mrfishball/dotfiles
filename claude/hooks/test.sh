@@ -2,6 +2,8 @@
 # Exercise every hook against sample input in a throwaway sandbox.
 # Usage: ~/dotfiles/claude/hooks/test.sh
 set -u
+# Git exports these to hooks; clear them so sandbox repos never see the outer repo.
+unset GIT_DIR GIT_INDEX_FILE GIT_WORK_TREE GIT_PREFIX
 HOOKS="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BIN="$HOOKS/../bin"
 PY="/usr/bin/python3 -I"
@@ -172,6 +174,34 @@ check "stray file removed"     "$([ -e src/stray.txt ] && echo present)"   ''
 check "attempt kept"           "$(cat "$RUN"/attempts/*/src/stray.txt)"     'stray'
 touch -t 202001010000 "$RUN/state.json"
 check "purge old runs"         "$($TR purge 30)"                            'purged 1'
+
+echo "== tdd-run worktrees"
+WREPO="$SANDBOX/wt-repo"
+mkdir -p "$WREPO/src/a" "$WREPO/src/b" && cd "$WREPO" && git init -q
+echo a > src/a/core.txt && echo b > src/b/core.txt && git add -A && git commit -qm base
+WRUN="$($TR init par)"
+echo contract > src/iface.txt
+WA="$($TR wt-add "$WRUN" a src/a/)"
+check "worktree has contract"  "$(cat "$WA/src/iface.txt")"                 'contract'
+check "main HEAD untouched"    "$(git log --oneline | wc -l | tr -d ' ')"   '1'
+check "main index untouched"   "$(git diff --cached --name-only)"           ''
+echo a2 > "$WA/src/a/core.txt" && echo new > "$WA/src/a/added.txt"
+check "collect"                "$($TR wt-collect "$WRUN" a)"                'collected a: 2 file(s)'
+check "change applied"         "$(cat src/a/core.txt)"                      'a2'
+check "new file applied"       "$(cat src/a/added.txt)"                     'new'
+check "worktree removed"       "$([ -e "$WA" ] && echo present)"            ''
+check "branch removed"         "$(git branch --list 'tdd/*')"               ''
+WB="$($TR wt-add "$WRUN" b src/b/)"
+echo sneaky > "$WB/src/iface.txt"
+check "outside owned refused"  "$($TR wt-collect "$WRUN" b; echo "exit=$?")" 'exit=4'
+check "nothing applied"        "$(cat src/iface.txt)"                       'contract'
+check "drop saves changes"     "$($TR wt-drop "$WRUN" b)"                   'changes saved'
+check "dropped worktree gone"  "$([ -e "$WB" ] && echo present)"            ''
+WB="$($TR wt-add "$WRUN" b src/b/)"
+echo theirs > "$WB/src/b/core.txt" && echo ours > src/b/core.txt
+check "conflict refused"       "$($TR wt-collect "$WRUN" b; echo "exit=$?")" 'exit=5'
+check "main kept its change"   "$(cat src/b/core.txt)"                      'ours'
+$TR wt-drop "$WRUN" b >/dev/null
 cd "$SANDBOX"
 
 echo "== no silent crashes"

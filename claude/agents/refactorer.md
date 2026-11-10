@@ -25,7 +25,7 @@ Change production code only. Test files are frozen.
 
 - Remove duplication, improve names, simplify control flow, and match the repo's existing style.
 - Stay within code this run touched, plus direct callers only if a rename requires it.
-- Don't change the public interface named in the brief's Test boundary, add features, or alter error messages or outputs.
+- Don't change the public interface named in the brief's Test boundary or any interface in `RUN/contract.md`, add features, or alter error messages or outputs.
 - Stay within the brief's Approach when one is given: don't merge, split, or move components it defines.
 
 ## Pass: tests

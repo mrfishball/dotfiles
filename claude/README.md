@@ -79,13 +79,16 @@ quarantine --purge DAYS             # runs automatically at session end with 14
 ```sh
 tdd-run init SLUG                  # run folder with brief, test plan, progress, state (records base commit)
 tdd-run brief-check RUN            # fails on missing or unfilled brief sections
-tdd-run freeze RUN TEST_FILES...   # frozen copies of the red-phase tests
-tdd-run check-frozen RUN           # exit 1 if frozen tests changed
+tdd-run freeze RUN FILES...        # frozen copies of the red-phase tests and contract files
+tdd-run check-frozen RUN           # exit 1 if frozen files changed
 tdd-run test-diff RUN              # frozen vs current tests
 tdd-run restore-tests RUN          # put frozen tests back
 tdd-run record RUN PASSING TOTAL   # exit 3 when 2 rounds pass with no gain
 tdd-run snapshot RUN               # save all files changed since base
 tdd-run restore RUN ID             # save the current attempt, then return to the snapshot
+tdd-run wt-add RUN NAME OWNED...   # worktree for one component, from the current working tree
+tdd-run wt-collect RUN NAME        # apply its changes to the main tree; exit 4 outside OWNED, 5 on conflict
+tdd-run wt-drop RUN NAME           # save its changes to attempts/, then remove it
 ```
 
 ## Kill switches
@@ -133,7 +136,7 @@ Each agent owns one role, and its tools match the role: judges can't edit, build
 | Agent | Role | Tools | Key rule |
 |---|---|---|---|
 | `verifier` | Fact checker | Read, Grep, Glob, Bash | Confirms, contradicts, or marks unverifiable each claim, with file:line evidence; unsourced rationale is NOT RECORDED. `CLAUDE.md` says when to use it. |
-| `builder` | `/tdd` red and green | Read, Grep, Glob, Edit, Write, Bash | Red: tests that fail for the right reason, plus stubs. Green: simplest passing code. Never edits tests; disputes them instead. |
+| `builder` | `/tdd` red and green | Read, Grep, Glob, Edit, Write, Bash | Red: tests that fail for the right reason, plus stubs. Green: simplest passing code. Never edits tests or the contract; disputes them instead. With a context pack, builds one component inside its owned files (and worktree). |
 | `test-writer` | Independent red phase | Read, Grep, Glob, Edit, Write, Bash | Reads the brief and boundary signatures only, never the implementation. |
 | `refactorer` | Behavior-preserving cleanup | Read, Grep, Glob, Edit, Write, Bash | One side at a time: code pass with tests frozen, then tests pass with code fixed. Snapshots first; restores on red. |
 | `evaluator` | Independent judge | Read, Grep, Glob, Bash | Reads the brief, test plan and diff, never the builder's notes. Strict, evidence for every finding, PASS only with no blocking findings. |
@@ -144,9 +147,11 @@ Each agent owns one role, and its tools match the role: judges can't edit, build
 
 ```
 brief + baseline run           main session; acceptance criteria, test boundary, exact commands
-  → approach (when needed)     Plan agent drafts, you confirm; otherwise "Not needed: <reason>"
+  → approach (when needed)     Plan agent drafts, you confirm it and the build mode
+  → contract (multi-component) interfaces as code, seam tests, context packs; frozen
   → builder (red)              failing tests that load cleanly, stubs; tests then frozen
   → builder (green)            simplest code to pass; disputes instead of editing tests
+  → integrate (multi-component) full suite; seam tests must pass
   → refactorer (code, tests)   one side at a time; restore on red
   → evaluator                  PASS, or FAIL with findings back to the builder
 ```
@@ -155,9 +160,21 @@ brief + baseline run           main session; acceptance criteria, test boundary,
 
 **Approach** is a required decision in every brief: either a design or `Not needed: <reason>`. A design is needed for a new module or service, a new data model or schema change, a new integration or dependency, a change to an existing public interface, a cross-cutting change, or a choice between approaches with real trade-offs. The `Plan` agent drafts it (components, interfaces, data flow, alternatives rejected, risks), and `tdd-run brief-check` fails until you confirm it. The builder works within it, the refactorer won't restructure against it, and the evaluator treats an unexplained deviation as blocking. If the approach turns out to be unworkable, the builder raises an `APPROACH DISPUTE`, which always comes to you.
 
+**Build modes.** The main session is the coordinator: it holds the full context and writes what each agent needs into the run folder.
+
+| Mode | When | How |
+|---|---|---|
+| single | no approach, or one component | one builder in the main tree |
+| sequential | several components | one builder per component, in dependency order, in the main tree |
+| parallel | a wave has 2+ components, interfaces fully pinned, owned files disjoint, a database per builder | builders in the same wave run at once, each in its own worktree |
+
+For sequential and parallel, the approach lists components with owned files, what each provides and consumes, and a dependency wave. The coordinator writes the **contract** (interfaces and shared data structures as code with not-implemented stubs, plus seam tests through real components) and freezes it with the tests. Each component gets a **context pack** (`packs/<component>.md`): its criteria, interfaces, owned files, seam tests, test command, and its own database or ports. Providers are built in earlier waves than their consumers, so nothing is ever tested against a fake of another component.
+
+Parallel worktrees are made by `tdd-run`, not Claude Code's built-in worktree isolation. The built-in kind branches from the default branch, so it wouldn't see the uncommitted contract, and how its changes come back isn't documented. `wt-add` snapshots the current working tree into a commit without touching HEAD or the index. `wt-collect` refuses changes outside the component's owned files and applies the rest to the main tree without committing. Not yet tried on a real run: whether builders writing under `~/.claude/work/` trigger permission prompts.
+
 The brief is the per-task contract. For larger work, design and planning happen earlier: `/write-prd` for requirements, `/generate-tasks` for the plan, then `/tdd` per sub-task, with its brief distilled from the PRD and the task.
 
-**Stops and escalates to you** when the red gate fails twice, a second dispute arises, two rounds pass with no new tests passing, three rounds pass without a PASS, or an agent is blocked.
+**Stops and escalates to you** when the red gate fails twice, a second dispute or any approach or interface dispute arises, the tests need a database or service that isn't available, two rounds pass with no new tests passing, three rounds pass without a PASS, or an agent is blocked.
 
 **Testing standard**: [`references/behavior-testing.md`](references/behavior-testing.md). Test behavior through the public boundary so tests survive refactoring, exercise real code inside the codebase (including a real database engine) and use doubles only for network calls and code you don't control, extract fixtures once setup repeats 3 times, keep values that drive the outcome visible, and write tests that read like a manual.
 
